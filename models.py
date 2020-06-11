@@ -1,6 +1,8 @@
 from exts import db
 from datetime import datetime
+from sqlalchemy.orm import relationship
 from werkzeug.security import generate_password_hash, check_password_hash
+
 bind_key = None
 
 
@@ -39,3 +41,19 @@ class User(db.Model):
     def check_password(self, raw_password):
         result = check_password_hash(self.password, raw_password)
         return result
+
+
+class Video(db.Model):
+    __bind_key__ = bind_key
+    __tablename__ = 'video'
+    path = db.Column(db.String(100), nullable=False)
+    title = db.Column(db.String(100), nullable=False)
+    pv = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    likes = db.Column(db.Integer, default=0)
+    collections = db.Column(db.Integer, default=0)
+    coins = db.Column(db.Integer, default=0)
+    upload_time = db.Column(db.DateTime, default=datetime.now)
+    # 建立外键关联
+    uid = db.Column(db.Integer, db.ForeignKey("user.id"))
+    author = relationship("User", backref="videos")
+
