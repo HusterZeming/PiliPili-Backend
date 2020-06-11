@@ -52,7 +52,9 @@ def register():
             password = form.password.data
             username = form.username.data
             user = User(email=email, username=username, password=password)
-            print(email)
+            # TODO 存数据到数据库
+
+            # print(email)
             # dbsession.add(user)
             # dbsession.commit()
             return success(message="注册成功")
