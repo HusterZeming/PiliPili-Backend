@@ -14,7 +14,7 @@ class User(db.Model):
     join_time:用户注册时间
     """
     __bind_key__ = bind_key
-    __table_name__ = 'user'
+    __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     username = db.Column(db.String(50), nullable=False)
     _password = db.Column(db.String(100), nullable=False)

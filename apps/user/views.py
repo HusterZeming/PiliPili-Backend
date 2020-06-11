@@ -7,7 +7,7 @@ from apps.libs.restful import unauthorized_error, params_error, success
 from apps.libs.error_code import RequestMethodNotAllowed
 from config import ALL_METHODS
 from .verify_token import auth
-from ..libs.dbsession import DBSession
+from exts import db
 
 # 用户蓝图，访问需加前缀/user
 user_bp = Blueprint('user', __name__, url_prefix='/user')
@@ -20,11 +20,10 @@ def login():
     # 验证Request method是否为POST,如果不是抛出405
     if request.method != 'POST':
         raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
-    dbsession = DBSession.make_session()
     form = LoginForm()
     # 检查表单
     if request.method == 'POST' and form.validate_for_api() and form.validate():
-        user = dbsession.query(User).filter_by(email=form.email.data).first()
+        user = db.session.query(User).filter_by(email=form.email.data).first()
         if not user or not user.check_password(form.password.data):
             return unauthorized_error(message="邮箱或密码错误")
         # 生成token
@@ -52,11 +51,8 @@ def register():
             password = form.password.data
             username = form.username.data
             user = User(email=email, username=username, password=password)
-            # TODO 存数据到数据库
-
-            # print(email)
-            # dbsession.add(user)
-            # dbsession.commit()
+            db.session.add(user)
+            db.session.commit()
             return success(message="注册成功")
     return params_error(message=form.get_error())
 
