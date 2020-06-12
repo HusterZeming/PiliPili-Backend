@@ -46,9 +46,10 @@ class User(db.Model):
 class Video(db.Model):
     __bind_key__ = bind_key
     __tablename__ = 'video'
-    path = db.Column(db.String(100), nullable=False)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    video = db.Column(db.String(100), nullable=False)
+    cover = db.Column(db.String(100), nullable=False)
     title = db.Column(db.String(100), nullable=False)
-    pv = db.Column(db.Integer, primary_key=True, autoincrement=True)
     likes = db.Column(db.Integer, default=0)
     collections = db.Column(db.Integer, default=0)
     coins = db.Column(db.Integer, default=0)

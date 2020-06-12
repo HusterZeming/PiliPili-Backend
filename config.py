@@ -1,6 +1,7 @@
 # encoding: utf-8
 import os
 
+# from flask_uploads import UploadSet, IMAGES, configure_uploads
 
 # 36字节的随机字符串作为密钥
 SECRET_KEY = os.urandom(36)
@@ -31,3 +32,11 @@ SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 # 所有允许的访问类型
 ALL_METHODS = ['GET', 'POST', 'PUT', "DELETE", "HEAD"]
+
+# app = create_app()
+# app.config['UPLOADED_PHOTOS_DEST'] = os.getcwd()
+# 文件上传
+# images = UploadSet('images', IMAGES)
+# videos = UploadSet('videos', 'mp4')
+# 上传的初始化
+# configure_uploads(app, [images, videos])

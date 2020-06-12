@@ -1,4 +1,4 @@
-from base_form import BaseForm
+from base_form import BaseForm, UploadBaseForm
 from wtforms.validators import InputRequired
 from wtforms import StringField, IntegerField
 from flask_wtf.file import FileField, FileRequired, FileAllowed
@@ -8,13 +8,22 @@ from exts import db
 from apps.libs.error_code import NotFound, AuthFailed
 
 
-class VideoUploadForm(BaseForm):
-    title = StringField(validators=[InputRequired(message="请输入文章标题")])
+class VideoUploadForm(UploadBaseForm):
     content = FileField(validators=[FileAllowed('mp4')])
 
 
+class ImageUploadForm(UploadBaseForm):
+    content = FileField(validators=[FileAllowed('jpg', 'png')])
+
+
+class VideoSaveForm(BaseForm):
+    title = StringField(validators=[InputRequired(message="请输入文章标题")])
+    video = StringField(validators=[InputRequired(message="请输入目标视频")])
+    cover = StringField(validators=[InputRequired(message="请输入目标封面")])
+
+
 class VideoDeleteForm(BaseForm):
-    id = IntegerField()
+    pv = IntegerField(validators=[InputRequired(message="请输入pv号")])
 
     # 验证id是否合法
     def validate_id(self, id_):
