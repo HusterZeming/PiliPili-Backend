@@ -1,12 +1,13 @@
 from flask import Blueprint, request
 
 from .generate_token import generate_token
-from .forms import RegisterForm, LoginForm
+from .forms import RegisterForm, LoginForm, UserPutCoinForm
 from models import User
 from apps.libs.restful import unauthorized_error, params_error, success
-from apps.libs.error_code import RequestMethodNotAllowed
+from apps.libs.error_code import RequestMethodNotAllowed, NotFound
 from config import ALL_METHODS
 from .verify_token import auth
+from flask import g
 from exts import db
 
 # 用户蓝图，访问需加前缀/user
@@ -62,3 +63,44 @@ def register():
 @auth.login_required()
 def verify_token():
     return success(message="有效")
+
+
+@user_bp.route('/details', methods=ALL_METHODS)
+@auth.login_required
+def details():
+    if request.method != 'GET':
+        raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
+    user_id = g.user.uid
+    user = db.session.query(User).filter_by(id=user_id).first()
+    if user:
+        data = {
+            'username': user.username,
+            'email': user.email,
+            'coins': user.coins
+        }
+        return success(message="购买硬币成功", data=data)
+    else:
+        raise NotFound(msg='未查到用户信息')
+
+
+@user_bp.route('/put-coin', methods=ALL_METHODS)
+@auth.login_required
+def put_coin():
+    if request.method != 'PUT':
+        raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
+    form = UserPutCoinForm()
+    count = form.coins.data
+    user_id = g.user.uid
+    user = db.session.query(User).filter_by(id=user_id).first()
+    if user:
+        coins = user.coins
+        if count <= 0:
+            return params_error(message="币数错误")
+        user.coins = coins + count
+        db.session.commit()
+        data = {
+            'coins': coins + count,
+        }
+        return success(message="获取用户成功", data=data)
+    else:
+        raise params_error(message=form.get_error())

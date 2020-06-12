@@ -7,11 +7,11 @@ from werkzeug.utils import secure_filename
 from datetime import datetime
 from apps.user.verify_token import auth
 from config import ALL_METHODS
-from .forms import VideoUploadForm, VideoDeleteForm, ImageUploadForm, VideoSaveForm
+from .forms import VideoUploadForm, VideoDeleteForm, ImageUploadForm, VideoSaveForm, VideoPutCoinForm
 from ..libs.error_code import NotFound, RequestMethodNotAllowed
 from ..libs.restful import params_error, success
 from exts import db
-from models import Video
+from models import Video, User
 
 video_bp = Blueprint('video', __name__, url_prefix='/video')
 
@@ -93,8 +93,8 @@ def save():
         video_path_real = basedir + "video/real/"
         cover_path_real = basedir + "image/cover/"
         time = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
-        video_name_real = str(uid) + time + ".mp4"
-        cover_name_real = str(uid) + time + ".jpg"
+        video_name_real = str(uid) + "-" + time + ".mp4"
+        cover_name_real = str(uid) + "-" + time + ".jpg"
         copyfile(video_path + video_name, video_path_real + video_name_real)
         copyfile(cover_path + cover_name, cover_path_real + cover_name_real)
         os.remove(video_path + video_name)
@@ -111,23 +111,81 @@ def save():
         return params_error(message=form.get_error())
 
 
-@video_bp.route('/modify/', methods=ALL_METHODS)
+@video_bp.route('/pv<int:id_>/like', methods=ALL_METHODS)
 @auth.login_required
-def modify():
+def like(id_):
     if request.method != 'PUT':
         raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
-    form = VideoUploadForm()
-    if form.validate_for_api() and form.validate():
-        video_id = form.id.data
-        title = form.title.data
-        content = request.files['mp4']
-        video = db.session.query(Video).filter_by(id=video_id).first()
-        if video:
-            video.title = title
-            video.content = content
-            return success(message="修改文章成功")
+    video = db.session.query(Video).filter_by(id=id_).first()
+    if video:
+        likes = video.likes
+        likes = likes + 1
+        video.likes = likes
+        db.session.commit()
+        data = {
+            'likes': likes,
+        }
+        return success(message="点赞成功", data=data)
     else:
-        return params_error(message=form.get_error())
+        raise NotFound(msg='未查到视频信息')
+
+
+@video_bp.route('/pv<int:id_>/put-coin', methods=ALL_METHODS)
+@auth.login_required
+def put_coin(id_):
+    if request.method != 'PUT':
+        raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
+    form = VideoPutCoinForm()
+    count = form.coins.data
+    user_id = g.user.uid
+    user = db.session.query(User).filter_by(id=user_id).first()
+    if count <= 0:
+        return params_error(message="币数错误")
+    if user:
+        coins_user = user.coins
+        if coins_user < count:
+            return params_error(message="币数不够")
+        user.coins = coins_user - count
+        db.session.commit()
+    video = db.session.query(Video).filter_by(id=id_).first()
+    if video:
+        coins = video.coins
+        coins = coins + count
+        video.coins = coins
+        uid = video.uid
+        db.session.commit()
+        user = db.session.query(User).filter_by(id=uid).first()
+        if user:
+            coins_target = user.coins
+            user.coins = coins_target + (count if count < 2 else count / 2)
+            db.session.commit()
+        data = {
+            'coins': coins,
+        }
+        return success(message="投币成功", data=data)
+    else:
+        raise NotFound(msg='未查到视频信息')
+
+
+@video_bp.route('/pv<int:id_>/collect', methods=ALL_METHODS)
+@auth.login_required
+def collect(id_):
+    if request.method != 'PUT':
+        raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
+    video = db.session.query(Video).filter_by(id=id_).first()
+    if video:
+        collections = video.collections
+        collections = collections + 1
+        video.likes = collections
+        pv = video.id
+        db.session.commit()
+        data = {
+            'collections': collections,
+            'pv': pv
+        }
+        return success(message="收藏成功", data=data)
+    else:
+        raise NotFound(msg='未查到视频信息')
 
 
 @video_bp.route("/delete", methods=ALL_METHODS)
@@ -174,11 +232,13 @@ def get_details(id_):
         likes = video.likes
         collections = video.collections
         coins = video.coins
+        views = video.views
         data = {
             'title': title,
             'likes': likes,
             'collections': collections,
-            "coins": coins
+            'coins': coins,
+            'views': views
         }
         return success(message="详情", data=data)
     else:
@@ -192,6 +252,9 @@ def get_video(id_):
     video = db.session.query(Video).filter_by(id=id_).first()
     if video:
         video_path = video.video
+        views = video.views
+        video.views = views + 1
+        db.session.commit()
         data = {
 
         }

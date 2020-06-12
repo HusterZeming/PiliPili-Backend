@@ -1,4 +1,4 @@
-from wtforms import StringField
+from wtforms import StringField, IntegerField
 from wtforms.validators import Email, InputRequired, Length
 from base_form import BaseForm
 from models import User
@@ -22,3 +22,7 @@ class RegisterForm(BaseForm):
         if User.query.filter_by(email=email.data).first():
             raise ParameterException(msg="邮箱已经被注册")
         return True
+
+
+class UserPutCoinForm(BaseForm):
+    coins = IntegerField(validators=[InputRequired(message="请输入投币个数")])

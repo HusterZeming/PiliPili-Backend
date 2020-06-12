@@ -22,6 +22,10 @@ class VideoSaveForm(BaseForm):
     cover = StringField(validators=[InputRequired(message="请输入目标封面")])
 
 
+class VideoPutCoinForm(BaseForm):
+    coins = IntegerField(validators=[InputRequired(message="请输入投币个数")])
+
+
 class VideoDeleteForm(BaseForm):
     pv = IntegerField(validators=[InputRequired(message="请输入pv号")])
 

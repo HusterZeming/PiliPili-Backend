@@ -21,6 +21,7 @@ class User(db.Model):
     username = db.Column(db.String(50), nullable=False)
     _password = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(25), nullable=False)
+    coins = db.Column(db.Integer, default=0)
     join_time = db.Column(db.DateTime, default=datetime.now)
 
     def __init__(self, username, password, email):
@@ -53,8 +54,23 @@ class Video(db.Model):
     likes = db.Column(db.Integer, default=0)
     collections = db.Column(db.Integer, default=0)
     coins = db.Column(db.Integer, default=0)
+    views = db.Column(db.Integer, default=0)
     upload_time = db.Column(db.DateTime, default=datetime.now)
     # 建立外键关联
     uid = db.Column(db.Integer, db.ForeignKey("user.id"))
     author = relationship("User", backref="videos")
+
+
+class Comment(db.Model):
+    __bind_key__ = bind_key
+    __tablename__ = 'comment'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    content = db.Column(db.String(100), nullable=False)
+    likes = db.Column(db.Integer, default=0)
+    upload_time = db.Column(db.DateTime, default=datetime.now)
+    # 建立外键关联
+    uid = db.Column(db.Integer, db.ForeignKey("user.id"))
+    author = relationship("User", backref="comments")
+    target = db.Column(db.Integer, db.ForeignKey("video.id"))
+    video = relationship("Video", backref="comments")
 
