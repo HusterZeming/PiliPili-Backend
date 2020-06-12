@@ -2,7 +2,7 @@ import os
 from shutil import copyfile
 
 from flask import request, send_file
-from flask import Blueprint, g
+from flask import Blueprint, g, session
 from werkzeug.utils import secure_filename
 from datetime import datetime
 from apps.user.verify_token import auth
@@ -40,14 +40,9 @@ def upload_video():
             return params_error(message="文件类型错误")
         time = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
         filename = filename + time + "-" + str(uid)
+        session['temp_video_name'] = filename
         content.save(os.path.join(path, filename))
-        # video = Video(title=title, path=path, uid=uid)
-        # db.session.add(video)
-        # db.session.commit()
-        data = {
-            'video': filename
-        }
-        return success(data=data, message="上传视频成功")
+        return success(message="上传视频成功")
     else:
         return params_error(message=form.get_error())
 
@@ -66,13 +61,15 @@ def upload_cover():
         filename = secure_filename(content.filename)
         if not filename.endswith('jpg') and not filename.endswith('png'):
             return params_error(message="文件类型错误")
+        if filename.endswith('jpg'):
+            session['cover_type'] = 'jpg'
+        elif filename.endswith('png'):
+            session['cover_type'] = 'png'
         time = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
         filename = filename + time + "-" + str(uid)
+        session['temp_cover_name'] = filename
         content.save(os.path.join(path, filename))
-        data = {
-            'cover': filename
-        }
-        return success(data=data, message="上传封面成功")
+        return success(message="上传封面成功")
     else:
         return params_error(message=form.get_error())
 
@@ -85,8 +82,8 @@ def save():
     form = VideoSaveForm()
     if form.validate_for_api() and form.validate():
         title = form.title.data
-        video_name = form.video.data
-        cover_name = form.cover.data
+        video_name = session['temp_video_name']
+        cover_name = session['temp_cover_name']
         uid = g.user.uid
         video_path = basedir + "video/temp/"
         cover_path = basedir + "image/temp/"
@@ -94,7 +91,7 @@ def save():
         cover_path_real = basedir + "image/cover/"
         time = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
         video_name_real = str(uid) + "-" + time + ".mp4"
-        cover_name_real = str(uid) + "-" + time + ".jpg"
+        cover_name_real = str(uid) + "-" + time + session['cover_type']
         copyfile(video_path + video_name, video_path_real + video_name_real)
         copyfile(cover_path + cover_name, cover_path_real + cover_name_real)
         os.remove(video_path + video_name)
