@@ -1,7 +1,7 @@
 import os
 from shutil import copyfile
 
-from flask import request
+from flask import request, send_file
 from flask import Blueprint, g
 from werkzeug.utils import secure_filename
 from datetime import datetime
@@ -130,7 +130,7 @@ def modify():
         return params_error(message=form.get_error())
 
 
-@video_bp.route("/delete/", methods=ALL_METHODS)
+@video_bp.route("/delete", methods=ALL_METHODS)
 @auth.login_required
 def delete():
     if request.method != 'DELETE':
@@ -149,6 +149,7 @@ def delete():
     else:
         return params_error(message=form.get_error())
 
+
 # @bp.route('/list_all/', methods=ALL_METHODS)
 # def list_all():
 #
@@ -163,16 +164,54 @@ def delete():
 #     return success(data={"all_articles": article_titles}, message="获取文章列表成功")
 #
 #
-# @bp.route('/details/<int:id_>',methods=ALL_METHODS)
-# def details(id_):
-#
-#     if request.method != 'GET':
-#         raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
-#     dbsession = DBSession.make_session()
-#     article = dbsession.query(Note).filter_by(id=id_).first()
-#     if article:
-#         title = article.title
-#         content = article.content
-#         return success(message="这是文章详情页", data={'文章标题': title, '文章内容': content})
-#     else:
-#         raise NotFound(msg='没有找到您要查看的文章')
+@video_bp.route('/pv<int:id_>/details', methods=ALL_METHODS)
+def get_details(id_):
+    if request.method != 'GET':
+        raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
+    video = db.session.query(Video).filter_by(id=id_).first()
+    if video:
+        title = video.title
+        likes = video.likes
+        collections = video.collections
+        coins = video.coins
+        data = {
+            'title': title,
+            'likes': likes,
+            'collections': collections,
+            "coins": coins
+        }
+        return success(message="详情", data=data)
+    else:
+        raise NotFound(msg='未查到视频信息')
+
+
+@video_bp.route('/pv<int:id_>/video', methods=ALL_METHODS)
+def get_video(id_):
+    if request.method != 'GET':
+        raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
+    video = db.session.query(Video).filter_by(id=id_).first()
+    if video:
+        video_path = video.video
+        data = {
+
+        }
+        return send_file(basedir + "video/real/" + video_path)
+        # return success(message="详情", data=data)
+    else:
+        raise NotFound(msg='未查到视频')
+
+
+@video_bp.route('/pv<int:id_>/cover', methods=ALL_METHODS)
+def get_cover(id_):
+    if request.method != 'GET':
+        raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
+    video = db.session.query(Video).filter_by(id=id_).first()
+    if video:
+        cover_path = video.cover
+        data = {
+
+        }
+        return send_file(basedir + "image/cover/" + cover_path)
+        # return success(message="详情", data=data)
+    else:
+        raise NotFound(msg='未查到视频')
