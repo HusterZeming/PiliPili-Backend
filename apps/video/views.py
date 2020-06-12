@@ -62,9 +62,9 @@ def upload_cover():
         if not filename.endswith('jpg') and not filename.endswith('png'):
             return params_error(message="文件类型错误")
         if filename.endswith('jpg'):
-            session['cover_type'] = 'jpg'
+            session['cover_type'] = '.jpg'
         elif filename.endswith('png'):
-            session['cover_type'] = 'png'
+            session['cover_type'] = '.png'
         time = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
         filename = filename + time + "-" + str(uid)
         session['temp_cover_name'] = filename
@@ -230,12 +230,17 @@ def get_details(id_):
         collections = video.collections
         coins = video.coins
         views = video.views
+        uid = video.id
+        user = db.session.query(User).filter_by(id=uid).first()
+        if not user:
+            raise NotFound(msg='未查到作者信息')
         data = {
             'title': title,
             'likes': likes,
             'collections': collections,
             'coins': coins,
-            'views': views
+            'views': views,
+            'author': user.id
         }
         return success(message="详情", data=data)
     else:
