@@ -8,7 +8,7 @@ from apps.user.verify_token import auth
 from config import ALL_METHODS
 from .forms import VideoUploadForm, VideoDeleteForm, ImageUploadForm, VideoSaveForm, VideoPutCoinForm
 from ..libs.error_code import NotFound, RequestMethodNotAllowed
-from ..libs.restful import params_error, success
+from ..libs.restful import params_error, success, unauthorized_error
 from exts import db
 from config import guest_Key, guest_Secret
 from models import Video, User
@@ -199,10 +199,11 @@ def delete():
     if form.validate_for_api and form.validate():
         video_id = form.pv.data
         video = db.session.query(Video).filter_by(id=video_id).first()
-        video_path_real = basedir + "video/real/"
-        cover_path_real = basedir + "image/cover/"
-        os.remove(video_path_real + video.video)
-        os.remove(cover_path_real + video.cover)
+        user_id = g.user.uid
+        if not user_id == video.uid:
+            return unauthorized_error(message="没有权限")
+        bucket.delete_object(video.video)
+        bucket.delete_object(video.cover)
         db.session.delete(video)
         db.session.commit()
         return success(message="删除视频成功")
