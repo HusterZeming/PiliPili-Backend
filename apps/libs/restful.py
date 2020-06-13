@@ -11,7 +11,10 @@ class HttpCode(object):
 
 
 def restful_result(code, message, data):
-    return jsonify({"code": code, "message": message, "data": data or {}})
+    if data:
+        return jsonify({"code": code, "message": message, "data": data})
+    else:
+        return jsonify({"code": code, "message": message})
 
 
 def success(message="", data=None):

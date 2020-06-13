@@ -23,6 +23,9 @@ class User(db.Model):
     email = db.Column(db.String(25), nullable=False)
     coins = db.Column(db.Integer, default=0)
     join_time = db.Column(db.DateTime, default=datetime.now)
+    collections = db.Column(db.Text(5000))
+    fans = db.Column(db.Text(10000))
+    followings = db.Column(db.Text(10000))
 
     def __init__(self, username, password, email):
         self.username = username

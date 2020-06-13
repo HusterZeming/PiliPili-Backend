@@ -23,6 +23,20 @@ class RegisterForm(BaseForm):
             raise ParameterException(msg="邮箱已经被注册")
         return True
 
+    def validate_username(self, username):
+        if User.query.filter_by(username=username.data).first():
+            raise ParameterException(msg="用户名已被占有")
+        return True
+
 
 class UserPutCoinForm(BaseForm):
     coins = IntegerField(validators=[InputRequired(message="请输入投币个数")])
+
+
+class UserFanForm(BaseForm):
+    id = IntegerField(validators=[InputRequired(message="请输入用户id")])
+
+
+class UserGetFanForm(BaseForm):
+    id = IntegerField(validators=[InputRequired(message="请输入用户id")])
+    page = IntegerField(validators=[InputRequired(message="请输入页号")])

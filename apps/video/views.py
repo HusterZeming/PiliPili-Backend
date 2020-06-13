@@ -81,18 +81,23 @@ def save():
         raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
     form = VideoSaveForm()
     if form.validate_for_api() and form.validate():
+        video_path = basedir + "video/temp/"
+        cover_path = basedir + "image/temp/"
+        uid = g.user.uid
+        keys = session.keys()
+        if 'temp_video_name' not in keys or 'temp_cover_name' not in keys or 'cover_type' not in keys:
+            for file in os.listdir(video_path):
+                if file.endswith(str(uid)):
+                    os.remove(video_path + file)
+            for file in os.listdir(cover_path):
+                if file.endswith(str(uid)):
+                    os.remove(cover_path + file)
+            return params_error(message="cookie错误")
         title = form.title.data
         video_name = session['temp_video_name']
         cover_name = session['temp_cover_name']
-        uid = g.user.uid
-        video_path = basedir + "video/temp/"
-        cover_path = basedir + "image/temp/"
         time = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
         cover_type = session['cover_type']
-        if not video_name or not cover_name or not cover_type:
-            os.remove(video_path + video_name)
-            os.remove(cover_path + cover_name)
-            return params_error(message="cookie错误")
         video_name_real = str(uid) + "-" + time + ".mp4"
         cover_name_real = str(uid) + "-" + time + cover_type
         os.rename(video_path + video_name, video_path + video_name_real)
@@ -111,6 +116,23 @@ def save():
         return success(data=data, message="保存视频成功")
     else:
         return params_error(message=form.get_error())
+
+
+@video_bp.route('/cancel', methods=ALL_METHODS)
+@auth.login_required
+def cancel():
+    if request.method != 'DELETE':
+        raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
+    uid = g.user.uid
+    video_path = basedir + "video/temp/"
+    cover_path = basedir + "image/temp/"
+    for file in os.listdir(video_path):
+        if file.endswith(str(uid)):
+            os.remove(video_path + file)
+    for file in os.listdir(cover_path):
+        if file.endswith(str(uid)):
+            os.remove(cover_path + file)
+    return success(message="取消成功")
 
 
 @video_bp.route('/pv<int:id_>/like', methods=ALL_METHODS)
@@ -175,14 +197,24 @@ def collect(id_):
     if request.method != 'PUT':
         raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
     video = db.session.query(Video).filter_by(id=id_).first()
+    user_id = g.user.uid
     if video:
-        collections = video.collections
-        collections = collections + 1
-        video.likes = collections
+        video_collections = video.collections
+        video_collections = video_collections + 1
+        video.collections = video_collections
         pv = video.id
         db.session.commit()
+        user = db.session.query(User).filter_by(id=user_id).first()
+        if user.collections:
+            collections = list(map(int, user.collections.split(',')))
+            collections.append(pv)
+            user.collections = ','.join(str(i) for i in collections)
+        else:
+            collections = [pv]
+            user.collections = collections
+        db.session.commit()
         data = {
-            'collections': collections,
+            'collections': video_collections,
             'pv': pv
         }
         return success(message="收藏成功", data=data)
