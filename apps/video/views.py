@@ -1,6 +1,5 @@
 import os
-from shutil import copyfile
-
+from config import bucket
 from flask import request, send_file
 from flask import Blueprint, g, session
 from werkzeug.utils import secure_filename
@@ -11,6 +10,7 @@ from .forms import VideoUploadForm, VideoDeleteForm, ImageUploadForm, VideoSaveF
 from ..libs.error_code import NotFound, RequestMethodNotAllowed
 from ..libs.restful import params_error, success
 from exts import db
+from config import guest_Key, guest_Secret
 from models import Video, User
 
 video_bp = Blueprint('video', __name__, url_prefix='/video')
@@ -87,15 +87,18 @@ def save():
         uid = g.user.uid
         video_path = basedir + "video/temp/"
         cover_path = basedir + "image/temp/"
-        video_path_real = basedir + "video/real/"
-        cover_path_real = basedir + "image/cover/"
         time = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
+        cover_type = session['cover_type']
+        if not video_name or not cover_name or not cover_type:
+            os.remove(video_path + video_name)
+            os.remove(cover_path + cover_name)
+            return params_error(message="cookie错误")
         video_name_real = str(uid) + "-" + time + ".mp4"
-        cover_name_real = str(uid) + "-" + time + session['cover_type']
-        copyfile(video_path + video_name, video_path_real + video_name_real)
-        copyfile(cover_path + cover_name, cover_path_real + cover_name_real)
-        os.remove(video_path + video_name)
-        os.remove(cover_path + cover_name)
+        cover_name_real = str(uid) + "-" + time + cover_type
+        os.rename(video_path + video_name, video_path + video_name_real)
+        os.rename(cover_path + cover_name, cover_path + cover_name_real)
+        bucket.put_object_from_file(video_name_real, video_path + video_name_real)
+        bucket.put_object_from_file(cover_name_real, cover_path + cover_name_real)
         video = Video(title=title, video=video_name_real, cover=cover_name_real, uid=uid)
         db.session.add(video)
         db.session.commit()
@@ -103,6 +106,8 @@ def save():
             'pv': video.id,
             'time': time
         }
+        os.remove(video_path + video_name_real)
+        os.remove(cover_path + cover_name_real)
         return success(data=data, message="保存视频成功")
     else:
         return params_error(message=form.get_error())
@@ -258,10 +263,11 @@ def get_video(id_):
         video.views = views + 1
         db.session.commit()
         data = {
-
+            'guest_Key': guest_Key,
+            'guest_Secret': guest_Secret,
+            'video': video_path
         }
-        return send_file(basedir + "video/real/" + video_path)
-        # return success(message="详情", data=data)
+        return success(message="详情", data=data)
     else:
         raise NotFound(msg='未查到视频')
 
@@ -274,9 +280,10 @@ def get_cover(id_):
     if video:
         cover_path = video.cover
         data = {
-
+            'guest_Key': guest_Key,
+            'guest_Secret': guest_Secret,
+            'cover': cover_path
         }
-        return send_file(basedir + "image/cover/" + cover_path)
-        # return success(message="详情", data=data)
+        return success(message="详情", data=data)
     else:
-        raise NotFound(msg='未查到视频')
+        raise NotFound(msg='未查到视频封面')

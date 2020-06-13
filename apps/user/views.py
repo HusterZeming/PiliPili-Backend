@@ -78,7 +78,7 @@ def details():
             'email': user.email,
             'coins': user.coins
         }
-        return success(message="购买硬币成功", data=data)
+        return success(message="获取用户信息成功", data=data)
     else:
         raise NotFound(msg='未查到用户信息')
 
@@ -101,6 +101,6 @@ def put_coin():
         data = {
             'coins': coins + count,
         }
-        return success(message="获取用户成功", data=data)
+        return success(message="购买硬币成功", data=data)
     else:
         raise params_error(message=form.get_error())

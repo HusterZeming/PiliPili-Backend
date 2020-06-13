@@ -1,7 +1,6 @@
 # encoding: utf-8
 import os
-
-# from flask_uploads import UploadSet, IMAGES, configure_uploads
+import oss2
 
 # 36字节的随机字符串作为密钥
 SECRET_KEY = os.urandom(36)
@@ -18,14 +17,14 @@ DB_PORT = '3306'
 DB_NAME = 'pilipili'
 DB_URI = 'mysql+pymysql://%s:%s@%s:%s/%s?charset=utf8' % (DB_USERNAME, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME)
 
-# 配置远程数据库相关信息
-# DB_USERNAME = 'root'
-# DB_PASSWORD = '784748497'
-# DB_HOST = '127.0.0.1'
-# DB_PORT = '3306'
-#
-# DB_NAME = 'pilipili'
-# DB_URI = 'mysql+pymysql://%s:%s@%s:%s/%s?charset=utf8' % (DB_USERNAME, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME)
+# 阿里Bucket配置,此为管理员
+auth = oss2.Auth('LTAI4GHxSd1uqj1YWkSFJsoR', '4x5zpNNjLDPHZfTH07MyJRTtz95Kuw')
+endpoint = 'https://oss-cn-beijing.aliyuncs.com'
+bucket = oss2.Bucket(auth, endpoint, 'pilipili-bucket')
+
+# 只读权限
+guest_Key = 'LTAI4G2sAv9YZPY7npjXzb3W'
+guest_Secret = 'RrgZoFblhs7IK7swSYJ3owviqHk3mt'
 
 SQLALCHEMY_DATABASE_URI = DB_URI
 SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -33,10 +32,3 @@ SQLALCHEMY_TRACK_MODIFICATIONS = False
 # 所有允许的访问类型
 ALL_METHODS = ['GET', 'POST', 'PUT', "DELETE", "HEAD"]
 
-# app = create_app()
-# app.config['UPLOADED_PHOTOS_DEST'] = os.getcwd()
-# 文件上传
-# images = UploadSet('images', IMAGES)
-# videos = UploadSet('videos', 'mp4')
-# 上传的初始化
-# configure_uploads(app, [images, videos])
