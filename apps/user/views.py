@@ -73,6 +73,7 @@ def details():
     user = db.session.query(User).filter_by(id=user_id).first()
     if user:
         data = {
+            'id': user.id,
             'username': user.username,
             'email': user.email,
             'coins': user.coins,
@@ -115,8 +116,8 @@ def open_details(id_):
     user = db.session.query(User).filter_by(id=id_).first()
     if user:
         data = {
+            'id': user.id,
             'username': user.username,
-            'email': user.email,
             'fans_count': len(list(map(int, user.fans.split(',')))) if user.fans else 0,
             'followings_count': len(list(map(int, user.followings.split(',')))) if user.followings else 0
         }

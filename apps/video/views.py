@@ -257,7 +257,8 @@ def un_collect(id_):
         else:
             return params_error(message="收藏数为0")
         data = {
-            'collections': video_collections,
+            'video_collections': video_collections,
+            'collections': len(list(map(int, user.collections.split(',')))) if user.collections else 0,
             'pv': pv
         }
         return success(message="取消收藏成功", data=data)
