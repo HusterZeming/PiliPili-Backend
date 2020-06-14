@@ -199,6 +199,11 @@ def collect(id_):
     video = db.session.query(Video).filter_by(id=id_).first()
     user_id = g.user.uid
     if video:
+        user = db.session.query(User).filter_by(id=user_id).first()
+        if user.collections:
+            collections = list(map(int, user.collections.split(',')))
+            if video.id in collections:
+                return params_error(message="已收藏")
         video_collections = video.collections
         video_collections = video_collections + 1
         video.collections = video_collections
@@ -218,6 +223,44 @@ def collect(id_):
             'pv': pv
         }
         return success(message="收藏成功", data=data)
+    else:
+        raise NotFound(msg='未查到视频信息')
+
+
+@video_bp.route('/pv<int:id_>/un-collect', methods=ALL_METHODS)
+@auth.login_required
+def un_collect(id_):
+    if request.method != 'PUT':
+        raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
+    video = db.session.query(Video).filter_by(id=id_).first()
+    user_id = g.user.uid
+    if video:
+        user = db.session.query(User).filter_by(id=user_id).first()
+        if user.collections:
+            collections = list(map(int, user.collections.split(',')))
+            if video.id not in collections:
+                return params_error(message="未收藏")
+        video_collections = video.collections
+        video_collections = video_collections - 1
+        video.collections = video_collections
+        pv = video.id
+        db.session.commit()
+        user = db.session.query(User).filter_by(id=user_id).first()
+        if user.collections:
+            collections = list(map(int, user.collections.split(',')))
+            collections.remove(pv)
+            if collections:
+                user.collections = ','.join(str(i) for i in collections)
+            else:
+                user.collections = None
+            db.session.commit()
+        else:
+            return params_error(message="收藏数为0")
+        data = {
+            'collections': video_collections,
+            'pv': pv
+        }
+        return success(message="取消收藏成功", data=data)
     else:
         raise NotFound(msg='未查到视频信息')
 
@@ -268,7 +311,7 @@ def get_details(id_):
         collections = video.collections
         coins = video.coins
         views = video.views
-        uid = video.id
+        uid = video.uid
         user = db.session.query(User).filter_by(id=uid).first()
         if not user:
             raise NotFound(msg='未查到作者信息')
