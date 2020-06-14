@@ -39,4 +39,5 @@ class UserFanForm(BaseForm):
 
 class UserGetFanForm(BaseForm):
     id = IntegerField(validators=[InputRequired(message="请输入用户id")])
+    page_count = IntegerField(validators=[InputRequired(message="请输入页面容量")])
     page = IntegerField(validators=[InputRequired(message="请输入页号")])

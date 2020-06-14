@@ -6,6 +6,7 @@ from exts import db
 from apps.libs.error_code import ServerError
 from apps.user.views import user_bp
 from apps.video.views import video_bp
+from apps.comment.views import comment_bp
 
 
 class JSONEncoder(_JSONEncoder):
@@ -28,6 +29,7 @@ def create_app():
     app = Flask(__name__)
     app.register_blueprint(user_bp)
     app.register_blueprint(video_bp)
+    app.register_blueprint(comment_bp)
     app.config.from_object(config)
     db.init_app(app)
     return app

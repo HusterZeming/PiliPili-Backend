@@ -1,17 +1,18 @@
 import os
 from config import bucket
-from flask import request, send_file
+from flask import request
 from flask import Blueprint, g, session
 from werkzeug.utils import secure_filename
 from datetime import datetime
 from apps.user.verify_token import auth
 from config import ALL_METHODS
-from .forms import VideoUploadForm, VideoDeleteForm, ImageUploadForm, VideoSaveForm, VideoPutCoinForm
+from .forms import VideoUploadForm, VideoDeleteForm, ImageUploadForm, VideoSaveForm, VideoPutCoinForm, \
+    VideoPutCommentForm
 from ..libs.error_code import NotFound, RequestMethodNotAllowed
 from ..libs.restful import params_error, success, unauthorized_error
 from exts import db
 from config import guest_Key, guest_Secret
-from models import Video, User
+from models import Video, User, Comment
 
 video_bp = Blueprint('video', __name__, url_prefix='/video')
 
@@ -141,15 +142,50 @@ def like(id_):
     if request.method != 'PUT':
         raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
     video = db.session.query(Video).filter_by(id=id_).first()
+    user_id = g.user.uid
     if video:
-        likes = video.likes
-        likes = likes + 1
-        video.likes = likes
+        user = db.session.query(User).filter_by(id=user_id).first()
+        if video.likes_user:
+            likes = list(map(int, video.likes_user.split(',')))
+            if user_id in likes:
+                return params_error(message="已点赞")
+            likes.append(user_id)
+            video.likes_user = ','.join(str(i) for i in likes)
+        else:
+            likes = [user_id]
+            video.likes_user = likes
         db.session.commit()
         data = {
-            'likes': likes,
+            'likes': len(list(map(int, video.likes_user.split(',')))) if video.likes_user else 0
         }
         return success(message="点赞成功", data=data)
+    else:
+        raise NotFound(msg='未查到视频信息')
+
+
+@video_bp.route('/pv<int:id_>/unlike', methods=ALL_METHODS)
+@auth.login_required
+def unlike(id_):
+    if request.method != 'PUT':
+        raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
+    video = db.session.query(Video).filter_by(id=id_).first()
+    user_id = g.user.uid
+    if video:
+        if video.likes_user:
+            likes = list(map(int, video.likes_user.split(',')))
+            if user_id not in likes:
+                return params_error(message="未点赞")
+            likes.remove(user_id)
+            if likes:
+                video.likes_user = ','.join(str(i) for i in likes)
+            else:
+                video.likes_user = None
+        else:
+            return params_error(message="点赞数为0")
+        data = {
+            'likes': len(list(map(int, video.likes_user.split(',')))) if video.likes_user else 0
+        }
+        return success(message="取消点赞成功", data=data)
     else:
         raise NotFound(msg='未查到视频信息')
 
@@ -219,7 +255,7 @@ def collect(id_):
             user.collections = collections
         db.session.commit()
         data = {
-            'collections': video_collections,
+            'video_collections': video_collections,
             'pv': pv
         }
         return success(message="收藏成功", data=data)
@@ -308,7 +344,6 @@ def get_details(id_):
     video = db.session.query(Video).filter_by(id=id_).first()
     if video:
         title = video.title
-        likes = video.likes
         collections = video.collections
         coins = video.coins
         views = video.views
@@ -318,10 +353,11 @@ def get_details(id_):
             raise NotFound(msg='未查到作者信息')
         data = {
             'title': title,
-            'likes': likes,
+            'likes': len(list(map(int, video.likes_user.split(',')))) if video.likes_user else 0,
             'collections': collections,
             'coins': coins,
             'views': views,
+            'comments': video.comments,
             'author': user.id
         }
         return success(message="详情", data=data)
@@ -364,3 +400,24 @@ def get_cover(id_):
         return success(message="详情", data=data)
     else:
         raise NotFound(msg='未查到视频封面')
+
+
+@video_bp.route('/pv<int:id_>/comment', methods=ALL_METHODS)
+@auth.login_required
+def comment(id_):
+    if request.method != 'POST':
+        raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
+    video = db.session.query(Video).filter_by(id=id_).first()
+    user_id = g.user.uid
+    if video:
+        form = VideoPutCommentForm()
+        if form.validate_for_api() and form.validate():
+            video.comments = video.comments + 1
+            db.session.commit()
+            comment_content = form.comment.data
+            comment_new = Comment(content=comment_content, uid=user_id, target=id_)
+            db.session.add(comment_new)
+            db.session.commit()
+        return success(message="评论成功")
+    else:
+        raise NotFound(msg='未查到视频')

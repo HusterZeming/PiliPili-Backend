@@ -54,10 +54,11 @@ class Video(db.Model):
     video = db.Column(db.String(100), nullable=False)
     cover = db.Column(db.String(100), nullable=False)
     title = db.Column(db.String(100), nullable=False)
-    likes = db.Column(db.Integer, default=0)
     collections = db.Column(db.Integer, default=0)
     coins = db.Column(db.Integer, default=0)
     views = db.Column(db.Integer, default=0)
+    comments = db.Column(db.Integer, default=0)
+    likes_user = db.Column(db.Text(10000))
     upload_time = db.Column(db.DateTime, default=datetime.now)
     # 建立外键关联
     uid = db.Column(db.Integer, db.ForeignKey("user.id"))
@@ -68,12 +69,12 @@ class Comment(db.Model):
     __bind_key__ = bind_key
     __tablename__ = 'comment'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    content = db.Column(db.String(100), nullable=False)
-    likes = db.Column(db.Integer, default=0)
+    content = db.Column(db.String(500), nullable=False)
+    likes_user = db.Column(db.Text(10000))
     upload_time = db.Column(db.DateTime, default=datetime.now)
     # 建立外键关联
     uid = db.Column(db.Integer, db.ForeignKey("user.id"))
-    author = relationship("User", backref="comments")
-    target = db.Column(db.Integer, db.ForeignKey("video.id"))
-    video = relationship("Video", backref="comments")
+    author = relationship("User", backref="comments_user")
+    target = db.Column(db.Integer, db.ForeignKey("video.id", ondelete='CASCADE', onupdate='CASCADE'))
+    replay_id = db.Column(db.Integer, db.ForeignKey("comment.id", ondelete='CASCADE', onupdate='CASCADE'))
 

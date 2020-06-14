@@ -219,8 +219,9 @@ def get_fans():
     if form.validate_for_api() and form.validate():
         user_id = form.id.data
         page = form.page.data
-        start = (page - 1) * 20
-        end = start + 20
+        page_count = form.page_count
+        start = (page - 1) * page_count
+        end = start + page_count
         fans = []
         user = db.session.query(User).filter_by(id=user_id).first()
         if user:
@@ -238,6 +239,6 @@ def get_fans():
                 data = {
                     'fans': fans
                 }
-            return success(message="取消关注", data=data)
+            return success(message="获取成功", data=data)
     else:
         raise params_error(message=form.get_error())

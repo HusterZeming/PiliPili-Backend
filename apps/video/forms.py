@@ -1,7 +1,7 @@
 from base_form import BaseForm, UploadBaseForm
-from wtforms.validators import InputRequired
+from wtforms.validators import InputRequired, Length
 from wtforms import StringField, IntegerField
-from flask_wtf.file import FileField, FileRequired, FileAllowed
+from flask_wtf.file import FileField, FileAllowed
 from flask import g
 from models import Video, User
 from exts import db
@@ -22,6 +22,10 @@ class VideoSaveForm(BaseForm):
 
 class VideoPutCoinForm(BaseForm):
     coins = IntegerField(validators=[InputRequired(message="请输入投币个数")])
+
+
+class VideoPutCommentForm(BaseForm):
+    comment = StringField(validators=[Length(1, 500, message="评论最多500字"), InputRequired(message="请输入评论")])
 
 
 class VideoDeleteForm(BaseForm):
