@@ -1,6 +1,5 @@
 import os
 import random
-
 from config import bucket
 from flask import request
 from flask import Blueprint, g, session
@@ -24,12 +23,6 @@ basedir = "static/"
 @video_bp.route('/upload', methods=ALL_METHODS)
 @auth.login_required
 def upload_video():
-    """
-    1.验证POST方法，验证token信息
-    2.进行JSON数据格式和表单验证，验证成功后通过g.user获取用户uid,然后像数据库插入数据，
-    返回success,否则返回参数错误
-    :return: success or params_error
-    """
     if request.method != 'POST' and 'content' in request.files:
         raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
     form = VideoUploadForm()
@@ -325,20 +318,6 @@ def delete():
         return params_error(message=form.get_error())
 
 
-# @bp.route('/list_all/', methods=ALL_METHODS)
-# def list_all():
-#
-#     if request.method != 'GET':
-#         raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
-#     dbsession = DBSession.make_session()
-#     article_titles = []
-#     articles = dbsession.query(Note).filter(Note.id).all()
-#     if articles:
-#         for article in articles:
-#             article_titles.append(article.title)
-#     return success(data={"all_articles": article_titles}, message="获取文章列表成功")
-#
-#
 @video_bp.route('/pv<int:id_>/details', methods=ALL_METHODS)
 def get_details(id_):
     if request.method != 'GET':
@@ -390,7 +369,7 @@ def get_video(id_):
             'guest_Secret': guest_Secret,
             'video': video_path
         }
-        return success(message="详情", data=data)
+        return success(message="视频", data=data)
     else:
         raise NotFound(msg='未查到视频')
 
@@ -407,7 +386,7 @@ def get_cover(id_):
             'guest_Secret': guest_Secret,
             'cover': cover_path
         }
-        return success(message="详情", data=data)
+        return success(message="视频封面", data=data)
     else:
         raise NotFound(msg='未查到视频封面')
 

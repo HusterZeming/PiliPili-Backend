@@ -1,6 +1,7 @@
 from wtforms import StringField, IntegerField
 from wtforms.validators import Email, InputRequired, Length
-from base_form import BaseForm
+from base_form import BaseForm, UploadBaseForm
+from flask_wtf.file import FileField, FileAllowed
 from models import User
 from apps.libs.error_code import ParameterException
 
@@ -48,3 +49,7 @@ class UserGetFanForm(BaseForm):
     id = IntegerField(validators=[InputRequired(message="请输入用户id")])
     page_count = IntegerField(validators=[InputRequired(message="请输入页面容量")])
     page = IntegerField(validators=[InputRequired(message="请输入页号")])
+
+
+class ImageUploadForm(UploadBaseForm):
+    content = FileField(validators=[FileAllowed('jpg', 'png')])

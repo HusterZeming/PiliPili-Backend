@@ -1,24 +1,29 @@
+import os
+from datetime import datetime
 from flask import Blueprint, request
-
 from .generate_token import generate_token
 from .forms import RegisterForm, LoginForm, UserPutCoinForm, UserFanForm, UserGetFanForm, UserPutUsernameForm, \
-    validate_email, validate_username
+    validate_email, validate_username, ImageUploadForm
 from models import User
 from apps.libs.restful import unauthorized_error, params_error, success
 from apps.libs.error_code import RequestMethodNotAllowed, NotFound
 from config import ALL_METHODS
 from .verify_token import auth
+from werkzeug.utils import secure_filename
 from flask import g
 from exts import db
+from config import guest_Key, guest_Secret
+from config import bucket
 
 # 用户蓝图，访问需加前缀/user
 user_bp = Blueprint('user', __name__, url_prefix='/user')
+
+basedir = "static/"
 
 
 @user_bp.route('/login', methods=ALL_METHODS)
 def login():
     # 登录
-    print(request.method)
     # 验证Request method是否为POST,如果不是抛出405
     if request.method != 'POST':
         raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
@@ -41,7 +46,6 @@ def login():
 @user_bp.route('/register', methods=ALL_METHODS)
 def register():
     # 注册
-    print(request.method)
     # 验证Request method是否为POST,如果不是抛出405
     if request.method.upper() != 'POST':
         raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
@@ -276,3 +280,103 @@ def get_fans():
             return success(message="获取成功", data=data)
     else:
         raise params_error(message=form.get_error())
+
+
+@user_bp.route('/upload-avatar', methods=ALL_METHODS)
+@auth.login_required
+def upload_avatar():
+    if request.method != 'POST' and 'content' in request.files:
+        raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
+    form = ImageUploadForm()
+    if form.validate():
+        content = request.files['content']
+        uid = g.user.uid
+        filename = secure_filename(content.filename)
+        path = basedir + "image/temp"
+        time = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
+        if filename.endswith('jpg'):
+            avatar_name = str(uid) + '-avatar.jpg'
+        elif filename.endswith('png'):
+            avatar_name = str(uid) + '-avatar.png'
+        else:
+            return params_error(message="文件类型错误")
+        filename = filename + time + "-" + str(uid)
+        content.save(os.path.join(path, filename))
+        bucket.put_object_from_file(avatar_name, path + '/' + filename)
+        user = db.session.query(User).filter_by(id=uid).first()
+        user.avatar = avatar_name
+        db.session.commit()
+        os.remove(path + '/' + filename)
+        data = {
+            'avatar': avatar_name
+        }
+        return success(data=data, message="上传头像成功")
+    else:
+        return params_error(message=form.get_error())
+
+
+@user_bp.route('/upload-background', methods=ALL_METHODS)
+@auth.login_required
+def upload_background():
+    if request.method != 'POST' and 'content' in request.files:
+        raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
+    form = ImageUploadForm()
+    if form.validate():
+        content = request.files['content']
+        uid = g.user.uid
+        filename = secure_filename(content.filename)
+        path = basedir + "image/temp"
+        time = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
+        if filename.endswith('jpg'):
+            background_name = str(uid) + '-background.jpg'
+        elif filename.endswith('png'):
+            background_name = str(uid) + '-background.png'
+        else:
+            return params_error(message="文件类型错误")
+        filename = filename + time + "-" + str(uid)
+        content.save(os.path.join(path, filename))
+        bucket.put_object_from_file(background_name, path + '/' + filename)
+        user = db.session.query(User).filter_by(id=uid).first()
+        user.background = background_name
+        db.session.commit()
+        os.remove(path + '/' + filename)
+        data = {
+            'background': background_name
+        }
+        return success(data=data, message="上传背景成功")
+    else:
+        return params_error(message=form.get_error())
+
+
+@user_bp.route('/uid<int:id_>/get-avatar', methods=ALL_METHODS)
+def get_avatar(id_):
+    if request.method != 'GET':
+        raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
+    user = db.session.query(User).filter_by(id=id_).first()
+    if user:
+        avatar_path = user.avatar
+        data = {
+            'guest_Key': guest_Key,
+            'guest_Secret': guest_Secret,
+            'avatar': avatar_path
+        }
+        return success(message="头像", data=data)
+    else:
+        raise NotFound(msg='未查到用户头像')
+
+
+@user_bp.route('/uid<int:id_>/get-background', methods=ALL_METHODS)
+def get_background(id_):
+    if request.method != 'GET':
+        raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
+    user = db.session.query(User).filter_by(id=id_).first()
+    if user:
+        background_path = user.background
+        data = {
+            'guest_Key': guest_Key,
+            'guest_Secret': guest_Secret,
+            'background': background_path
+        }
+        return success(message="背景", data=data)
+    else:
+        raise NotFound(msg='未查到用户背景')
