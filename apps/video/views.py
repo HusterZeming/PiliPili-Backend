@@ -1,4 +1,6 @@
 import os
+import random
+
 from config import bucket
 from flask import request
 from flask import Blueprint, g, session
@@ -7,7 +9,7 @@ from datetime import datetime
 from apps.user.verify_token import auth
 from config import ALL_METHODS
 from .forms import VideoUploadForm, VideoDeleteForm, ImageUploadForm, VideoSaveForm, VideoPutCoinForm, \
-    VideoPutCommentForm
+    VideoPutCommentForm, VideoGetCommentForm
 from ..libs.error_code import NotFound, RequestMethodNotAllowed
 from ..libs.restful import params_error, success, unauthorized_error
 from exts import db
@@ -356,8 +358,9 @@ def get_details(id_):
             'likes': len(list(map(int, video.likes_user.split(',')))) if video.likes_user else 0,
             'collections': collections,
             'coins': coins,
-            'views': views,
+            'views': len(list(map(int, video.views.split(',')))) if video.views else 0,
             'comments': video.comments,
+            'time': video.upload_time.strftime('%Y-%m-%d-%H-%M-%S'),
             'author': user.id
         }
         return success(message="详情", data=data)
@@ -366,14 +369,21 @@ def get_details(id_):
 
 
 @video_bp.route('/pv<int:id_>/video', methods=ALL_METHODS)
+@auth.login_required
 def get_video(id_):
     if request.method != 'GET':
         raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
     video = db.session.query(Video).filter_by(id=id_).first()
+    user_id = g.user.uid
     if video:
+        if video.views:
+            views = list(map(int, video.views.split(',')))
+            if user_id not in views:
+                views.append(user_id)
+                video.views = ','.join(str(i) for i in views)
+        else:
+            video.views = [user_id]
         video_path = video.video
-        views = video.views
-        video.views = views + 1
         db.session.commit()
         data = {
             'guest_Key': guest_Key,
@@ -421,3 +431,64 @@ def comment(id_):
         return success(message="评论成功")
     else:
         raise NotFound(msg='未查到视频')
+
+
+@video_bp.route("/pv<int:id_>/get-comment", methods=ALL_METHODS)
+def get_comment(id_):
+    if request.method != 'GET':
+        raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
+    form = VideoGetCommentForm()
+    if form.validate_for_api() and form.validate():
+        type = form.type.data
+        video = db.session.query(Video).filter_by(id=id_).first()
+        comment_id = []
+        if video:
+            if type == 1:
+                all_comment = db.session.query(Comment).filter_by(target=id_, replay_id=None) \
+                    .order_by(db.desc(Comment.likes_user)).all()
+            else:
+                all_comment = db.session.query(Comment).filter_by(target=id_, replay_id=None) \
+                    .order_by(db.desc(Comment.upload_time)).all()
+        else:
+            return params_error(message="未找到视频")
+        if all_comment:
+            for comment_item in all_comment:
+                comment_id.append(comment_item.id)
+        data = {
+            'all_comments': comment_id
+        }
+        return success(data=data, message="获取评论成功")
+    else:
+        return params_error(message=form.get_error())
+
+
+@video_bp.route("/list-video", methods=ALL_METHODS)
+def list_video():
+    if request.method != 'GET':
+        raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
+    video = []
+    all_video = db.session.query(Video).filter(Video.id).order_by(db.desc(Video.upload_time)).all()
+    length = len(all_video)
+    if length > 50:
+        candidate_video = all_video[0:50]
+    else:
+        candidate_video = all_video[0:length]
+    i = 1
+    length = len(candidate_video)
+    candidate_video.sort(key=lambda Video: (len(list(map(int, Video.views.split(',')))) if Video.views else 0)
+                                           * 4 + Video.coins * 2 + Video.comments * 2 + Video.collections * 2,
+                         reverse=True)
+    if length < 8:
+        for video_item in candidate_video:
+            video.append(video_item.id)
+    while i < 9 and length > 8:
+        video_id = random.randint(1, length)
+        if video_id in video:
+            continue
+        else:
+            video.append(video_id)
+            i += 1
+    data = {
+        'video_list': video
+    }
+    return success(data=data, message="获取视频成功")

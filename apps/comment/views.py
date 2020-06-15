@@ -97,3 +97,39 @@ def replay(id_):
     else:
         return params_error(message=form.get_error())
     return success(message="回复成功")
+
+
+@comment_bp.route("/comment<int:id_>/get-replay", methods=ALL_METHODS)
+def get_replay(id_):
+    if request.method != 'GET':
+        raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
+    comment = db.session.query(Comment).filter_by(id=id_).first()
+    replay_id = []
+    if comment:
+        all_replay = db.session.query(Comment).filter_by(replay_id=id_).all()
+        if all_replay:
+            for replay_item in all_replay:
+                replay_id.append(replay_item.id)
+    else:
+        return params_error(message="未找到评论")
+    data = {
+        'all_replays': replay_id
+    }
+    return success(data=data, message="获取回复成功")
+
+
+@comment_bp.route("/comment<int:id_>/details", methods=ALL_METHODS)
+def details(id_):
+    if request.method != 'GET':
+        raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
+    comment = db.session.query(Comment).filter_by(id=id_).first()
+    if comment:
+        data = {
+            'content': comment.content,
+            'likes': len(list(map(int, comment.likes_user.split(',')))) if comment.likes_user else 0,
+            'time': comment.upload_time.strftime('%Y-%m-%d-%H-%M-%S'),
+            'author': comment.uid
+        }
+        return success(data=data, message="获取评论成功")
+    else:
+        return params_error(message="未查到评论")

@@ -56,7 +56,7 @@ class Video(db.Model):
     title = db.Column(db.String(100), nullable=False)
     collections = db.Column(db.Integer, default=0)
     coins = db.Column(db.Integer, default=0)
-    views = db.Column(db.Integer, default=0)
+    views = db.Column(db.Text(10000))
     comments = db.Column(db.Integer, default=0)
     likes_user = db.Column(db.Text(10000))
     upload_time = db.Column(db.DateTime, default=datetime.now)

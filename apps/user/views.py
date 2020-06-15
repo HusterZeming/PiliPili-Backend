@@ -1,7 +1,8 @@
 from flask import Blueprint, request
 
 from .generate_token import generate_token
-from .forms import RegisterForm, LoginForm, UserPutCoinForm, UserFanForm, UserGetFanForm
+from .forms import RegisterForm, LoginForm, UserPutCoinForm, UserFanForm, UserGetFanForm, UserPutUsernameForm, \
+    validate_email, validate_username
 from models import User
 from apps.libs.restful import unauthorized_error, params_error, success
 from apps.libs.error_code import RequestMethodNotAllowed, NotFound
@@ -46,7 +47,7 @@ def register():
         raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
     form = RegisterForm()
     if form.validate_for_api() and form.validate():
-        if form.validate_email(form.email) and form.validate_username(form.username):
+        if validate_email(form.email) and validate_username(form.username):
             email = form.email.data
             password = form.password.data
             username = form.username.data
@@ -107,6 +108,35 @@ def put_coin():
             return success(message="购买硬币成功", data=data)
     else:
         raise params_error(message=form.get_error())
+
+
+@user_bp.route('/put-username', methods=ALL_METHODS)
+@auth.login_required
+def put_username():
+    if request.method != 'PUT':
+        raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
+    form = UserPutUsernameForm()
+    if form.validate_for_api() and form.validate():
+        if validate_username(form.username):
+            username = form.username.data
+            cost = form.cost.data
+            if cost < 0:
+                return params_error(message="币数错误")
+            user_id = g.user.uid
+            user = db.session.query(User).filter_by(id=user_id).first()
+            if user:
+                user.username = username
+                if cost > user.coins:
+                    return params_error(message="币数不足")
+                user.coins = user.coins - cost
+                db.session.commit()
+            data = {
+                'username': username,
+                'coins': user.coins
+            }
+            return success(message="改名成功", data=data)
+    else:
+        return params_error(message=form.get_error())
 
 
 @user_bp.route('/<int:id_>/details', methods=ALL_METHODS)

@@ -12,25 +12,32 @@ class LoginForm(BaseForm):
     password = StringField(validators=[Length(6, 20, message="密码长度6位到20位"), InputRequired("请输入密码")])
 
 
+def validate_username(username):
+    if User.query.filter_by(username=username.data).first():
+        raise ParameterException(msg="用户名已被占有")
+    return True
+
+
+def validate_email(email):
+    if User.query.filter_by(email=email.data).first():
+        raise ParameterException(msg="邮箱已经被注册")
+    return True
+
+
 class RegisterForm(BaseForm):
     # 注册
     email = StringField(validators=[Length(6, 25, message="邮箱长度6位到25位"), Email(message="请输入正确的邮箱")])
     password = StringField(validators=[Length(6, 20, message="请正确输入密码")])
     username = StringField([InputRequired(message="请输入用户名"), Length(2, 15, message="用户名位2到15个字符")])
 
-    def validate_email(self, email):
-        if User.query.filter_by(email=email.data).first():
-            raise ParameterException(msg="邮箱已经被注册")
-        return True
-
-    def validate_username(self, username):
-        if User.query.filter_by(username=username.data).first():
-            raise ParameterException(msg="用户名已被占有")
-        return True
-
 
 class UserPutCoinForm(BaseForm):
     coins = IntegerField(validators=[InputRequired(message="请输入投币个数")])
+
+
+class UserPutUsernameForm(BaseForm):
+    username = StringField([InputRequired(message="请输入用户名"), Length(2, 15, message="用户名位2到15个字符")])
+    cost = IntegerField(validators=[InputRequired(message="请输入花费币个数")])
 
 
 class UserFanForm(BaseForm):

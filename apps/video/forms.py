@@ -28,6 +28,10 @@ class VideoPutCommentForm(BaseForm):
     comment = StringField(validators=[Length(1, 500, message="评论最多500字"), InputRequired(message="请输入评论")])
 
 
+class VideoGetCommentForm(BaseForm):
+    type = IntegerField(validators=[InputRequired(message="请输入排序类型")])
+
+
 class VideoDeleteForm(BaseForm):
     pv = IntegerField(validators=[InputRequired(message="请输入pv号")])
 
