@@ -165,6 +165,8 @@ def fan():
     if form.validate_for_api() and form.validate():
         target_id = form.id.data
         user_id = g.user.uid
+        if user_id == target_id:
+            return params_error(message="无法关注自己")
         user = db.session.query(User).filter_by(id=user_id).first()
         if user:
             if user.followings:
@@ -208,6 +210,8 @@ def un_fan():
     if form.validate_for_api() and form.validate():
         target_id = form.id.data
         user_id = g.user.uid
+        if user_id == target_id:
+            return params_error(message="无法取关自己")
         user = db.session.query(User).filter_by(id=user_id).first()
         if user:
             followings = list(map(int, user.followings.split(',')))
