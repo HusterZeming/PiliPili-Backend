@@ -18,9 +18,9 @@ def verify(token):
     s = Serializer(current_app.config['SECRET_KEY'])
     print("s" + str(s))
     try:
-        print("token: "+token)
+        print("token: "+str(token))
         data = s.loads(token)
-        print("data: "+data)
+        print("data: "+str(data))
     except BadSignature:
         raise AuthFailed(msg="token is invalid")
     except SignatureExpired:
