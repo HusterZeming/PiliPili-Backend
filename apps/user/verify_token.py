@@ -16,11 +16,8 @@ def verify(token):
 
     # 通过反序列化loads验证Authorization中的token是否有效
     s = Serializer(current_app.config['SECRET_KEY'])
-    print("s" + str(s))
     try:
-        print("token: "+str(token))
         data = s.loads(token)
-        print("data: "+str(data))
     except BadSignature:
         raise AuthFailed(msg="token is invalid")
     except SignatureExpired:

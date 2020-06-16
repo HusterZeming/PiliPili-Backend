@@ -3,7 +3,7 @@ import os
 import oss2
 
 # 36字节的随机字符串作为密钥
-SECRET_KEY = os.urandom(36)
+SECRET_KEY = "os.urandom(36)"
 
 # 开启Debug模式
 DEBUG = False
