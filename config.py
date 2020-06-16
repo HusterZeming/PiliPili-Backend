@@ -6,7 +6,7 @@ import oss2
 SECRET_KEY = os.urandom(36)
 
 # 开启Debug模式
-DEBUG = True
+DEBUG = False
 
 # 配置本地数据库相关信息，本地开发！！！修改后勿提交此文件！！！
 DB_USERNAME = 'root'
