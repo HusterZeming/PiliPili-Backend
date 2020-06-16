@@ -111,7 +111,7 @@ def put_coin():
             }
             return success(message="购买硬币成功", data=data)
     else:
-        raise params_error(message=form.get_error())
+        return params_error(message=form.get_error())
 
 
 @user_bp.route('/put-username', methods=ALL_METHODS)
