@@ -16,7 +16,7 @@ def verify(token):
 
     # 通过反序列化loads验证Authorization中的token是否有效
     s = Serializer(current_app.config['SECRET_KEY'])
-    print("s" + s)
+    print("s" + str(s))
     try:
         print("token: "+token)
         data = s.loads(token)
