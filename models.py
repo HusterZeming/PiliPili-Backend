@@ -26,8 +26,8 @@ class User(db.Model):
     collections = db.Column(db.Text(5000))
     fans = db.Column(db.Text(10000))
     followings = db.Column(db.Text(10000))
-    avatar = db.Column(db.String(100), nullable=False)
-    background = db.Column(db.String(100), nullable=False)
+    avatar = db.Column(db.String(100))
+    background = db.Column(db.String(100))
 
     def __init__(self, username, password, email):
         self.username = username
