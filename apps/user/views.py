@@ -3,8 +3,8 @@ from datetime import datetime
 from flask import Blueprint, request
 from .generate_token import generate_token
 from .forms import RegisterForm, LoginForm, UserPutCoinForm, UserFanForm, UserGetFanForm, UserPutUsernameForm, \
-    validate_email, validate_username, ImageUploadForm
-from models import User
+    validate_email, validate_username, ImageUploadForm, UserPutSignForm, UserPutGenderForm
+from models import User, Video
 from apps.libs.restful import unauthorized_error, params_error, success
 from apps.libs.error_code import RequestMethodNotAllowed, NotFound
 from config import ALL_METHODS
@@ -81,13 +81,14 @@ def details():
             'id': user.id,
             'username': user.username,
             'email': user.email,
+            'gender': user.gender,
             'coins': user.coins,
             'fans_count': len(list(map(int, user.fans.split(',')))) if user.fans else 0,
             'followings_count': len(list(map(int, user.followings.split(',')))) if user.followings else 0
         }
         return success(message="获取用户信息成功", data=data)
     else:
-        raise NotFound(msg='未查到用户信息')
+        return params_error(message='未查到用户信息')
 
 
 @user_bp.route('/put-coin', methods=ALL_METHODS)
@@ -152,6 +153,7 @@ def open_details(id_):
         data = {
             'id': user.id,
             'username': user.username,
+            'gender': user.gender,
             'fans_count': len(list(map(int, user.fans.split(',')))) if user.fans else 0,
             'followings_count': len(list(map(int, user.followings.split(',')))) if user.followings else 0
         }
@@ -379,4 +381,68 @@ def get_background(id_):
         }
         return success(message="背景", data=data)
     else:
-        raise params_error(message="未查到用户背景")
+        return params_error(message="未查到用户背景")
+
+
+@user_bp.route('/upload-sign', methods=ALL_METHODS)
+@auth.login_required
+def upload_sign():
+    if request.method != 'POST':
+        raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
+    form = UserPutSignForm()
+    if form.validate_for_api and form.validate():
+        user = db.session.query(User).filter_by(id=g.user.uid).first()
+        if user:
+            user.sign = form.sign.data
+            db.session.commit()
+            data = {
+                'sign': user.sign
+            }
+            return success(message="签名", data=data)
+        else:
+            return params_error(message="未查到用户")
+    else:
+        return params_error(message=form.get_error())
+
+
+@user_bp.route('/put-gender', methods=ALL_METHODS)
+@auth.login_required
+def put_gender():
+    if request.method != 'PUT':
+        raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
+    form = UserPutGenderForm()
+    if form.validate_for_api and form.validate():
+        user = db.session.query(User).filter_by(id=g.user.uid).first()
+        if user:
+            gender = form.gender.data
+            user.gender = gender
+            db.session.commit()
+            data = {
+                'gender': user.gender
+            }
+            return success(message="性别", data=data)
+        else:
+            return params_error(message="未查到用户")
+    else:
+        return params_error(message=form.get_error())
+
+
+@user_bp.route('/get-space', methods=ALL_METHODS)
+@auth.login_required
+def get_space():
+    if request.method != 'GET':
+        raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
+    user = db.session.query(User).filter_by(id=g.user.uid).first()
+    if user:
+        all_video = db.session.query(Video).filter_by(uid=g.user.uid).all()
+        likes = 0
+        if all_video:
+            for video in all_video:
+                likes += len(list(map(int, video.likes_user.split(',')))) if video.likes_user else 0
+        data = {
+            'sign': user.sign if user.sign else '这个人很懒，什么都没有留下',
+            'likes': likes
+        }
+        return success(message="空间数据", data=data)
+    else:
+        return params_error(message="未查到用户")

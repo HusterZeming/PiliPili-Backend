@@ -1,4 +1,4 @@
-from wtforms import StringField, IntegerField
+from wtforms import StringField, IntegerField, BooleanField
 from wtforms.validators import Email, InputRequired, Length
 from base_form import BaseForm, UploadBaseForm
 from flask_wtf.file import FileField, FileAllowed
@@ -43,6 +43,14 @@ class UserPutUsernameForm(BaseForm):
 
 class UserFanForm(BaseForm):
     id = IntegerField(validators=[InputRequired(message="请输入用户id")])
+
+
+class UserPutSignForm(BaseForm):
+    sign = StringField(validators=[Length(0, 70, message="签名最多70个字符")])
+
+
+class UserPutGenderForm(BaseForm):
+    gender = BooleanField()
 
 
 class UserGetFanForm(BaseForm):
