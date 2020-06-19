@@ -2,7 +2,7 @@ from flask import request
 from flask import Blueprint, g
 from apps.user.verify_token import auth
 from config import ALL_METHODS
-from ..libs.error_code import NotFound, RequestMethodNotAllowed
+from ..libs.error_code import RequestMethodNotAllowed
 from ..libs.restful import params_error, success, unauthorized_error
 from .forms import CommentReplyForm
 from exts import db
@@ -34,7 +34,7 @@ def like(id_):
         }
         return success(message="点赞成功", data=data)
     else:
-        raise NotFound(msg='未查到评论信息')
+        return params_error(message="未查到评论信息")
 
 
 @comment_bp.route('/comment<int:id_>/unlike', methods=ALL_METHODS)
@@ -62,7 +62,7 @@ def unlike(id_):
         }
         return success(message="取消点赞成功", data=data)
     else:
-        raise NotFound(msg='未查到评论信息')
+        return params_error(message="未查到评论信息")
 
 
 @comment_bp.route("/comment<int:id_>/delete", methods=ALL_METHODS)

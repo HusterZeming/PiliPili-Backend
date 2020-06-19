@@ -157,7 +157,7 @@ def open_details(id_):
         }
         return success(message="获取用户信息成功", data=data)
     else:
-        raise NotFound(msg='未查到用户信息')
+        return params_error(message="未查到用户信息")
 
 
 @user_bp.route('/fan', methods=ALL_METHODS)
@@ -202,7 +202,7 @@ def fan():
             }
             return success(message="已关注", data=data)
     else:
-        raise params_error(message=form.get_error())
+        return params_error(message=form.get_error())
 
 
 @user_bp.route('/un-fan', methods=ALL_METHODS)
@@ -246,7 +246,7 @@ def un_fan():
             }
             return success(message="取消关注", data=data)
     else:
-        raise params_error(message=form.get_error())
+        return params_error(message=form.get_error())
 
 
 @user_bp.route('/get-fans', methods=ALL_METHODS)
@@ -279,7 +279,7 @@ def get_fans():
                 }
             return success(message="获取成功", data=data)
     else:
-        raise params_error(message=form.get_error())
+        return params_error(message=form.get_error())
 
 
 @user_bp.route('/upload-avatar', methods=ALL_METHODS)
@@ -362,7 +362,7 @@ def get_avatar(id_):
         }
         return success(message="头像", data=data)
     else:
-        raise NotFound(msg='未查到用户头像')
+        return params_error(message="未查到用户头像")
 
 
 @user_bp.route('/uid<int:id_>/get-background', methods=ALL_METHODS)
@@ -379,4 +379,4 @@ def get_background(id_):
         }
         return success(message="背景", data=data)
     else:
-        raise NotFound(msg='未查到用户背景')
+        raise params_error(message="未查到用户背景")

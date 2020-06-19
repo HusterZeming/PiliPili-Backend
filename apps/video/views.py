@@ -155,7 +155,7 @@ def like(id_):
         }
         return success(message="点赞成功", data=data)
     else:
-        raise NotFound(msg='未查到视频信息')
+        return params_error(message="未查到视频信息")
 
 
 @video_bp.route('/pv<int:id_>/unlike', methods=ALL_METHODS)
@@ -182,7 +182,7 @@ def unlike(id_):
         }
         return success(message="取消点赞成功", data=data)
     else:
-        raise NotFound(msg='未查到视频信息')
+        return params_error(message="未查到视频信息")
 
 
 @video_bp.route('/pv<int:id_>/put-coin', methods=ALL_METHODS)
@@ -219,7 +219,7 @@ def put_coin(id_):
         }
         return success(message="投币成功", data=data)
     else:
-        raise NotFound(msg='未查到视频信息')
+        return params_error(message="未查到视频信息")
 
 
 @video_bp.route('/pv<int:id_>/collect', methods=ALL_METHODS)
@@ -255,7 +255,7 @@ def collect(id_):
         }
         return success(message="收藏成功", data=data)
     else:
-        raise NotFound(msg='未查到视频信息')
+        return params_error(message="未查到视频信息")
 
 
 @video_bp.route('/pv<int:id_>/un-collect', methods=ALL_METHODS)
@@ -294,7 +294,7 @@ def un_collect(id_):
         }
         return success(message="取消收藏成功", data=data)
     else:
-        raise NotFound(msg='未查到视频信息')
+        return params_error(message="未查到视频信息")
 
 
 @video_bp.route("/delete", methods=ALL_METHODS)
@@ -331,7 +331,7 @@ def get_details(id_):
         uid = video.uid
         user = db.session.query(User).filter_by(id=uid).first()
         if not user:
-            raise NotFound(msg='未查到作者信息')
+            return params_error(message="未查到作者信息")
         data = {
             'title': title,
             'likes': len(list(map(int, video.likes_user.split(',')))) if video.likes_user else 0,
@@ -344,7 +344,7 @@ def get_details(id_):
         }
         return success(message="详情", data=data)
     else:
-        raise NotFound(msg='未查到视频信息')
+        return params_error(message="未查到视频信息")
 
 
 @video_bp.route('/pv<int:id_>/video', methods=ALL_METHODS)
@@ -371,7 +371,7 @@ def get_video(id_):
         }
         return success(message="视频", data=data)
     else:
-        raise NotFound(msg='未查到视频')
+        return params_error(message="未查到视频")
 
 
 @video_bp.route('/pv<int:id_>/cover', methods=ALL_METHODS)
@@ -388,7 +388,7 @@ def get_cover(id_):
         }
         return success(message="视频封面", data=data)
     else:
-        raise NotFound(msg='未查到视频封面')
+        return params_error(message="未查到视频封面")
 
 
 @video_bp.route('/pv<int:id_>/comment', methods=ALL_METHODS)
@@ -409,7 +409,7 @@ def comment(id_):
             db.session.commit()
         return success(message="评论成功")
     else:
-        raise NotFound(msg='未查到视频')
+        return params_error(message="未查到视频")
 
 
 @video_bp.route("/pv<int:id_>/get-comment", methods=ALL_METHODS)
