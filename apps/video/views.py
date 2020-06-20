@@ -9,6 +9,7 @@ from apps.user.verify_token import auth
 from config import ALL_METHODS
 from .forms import VideoUploadForm, VideoDeleteForm, ImageUploadForm, VideoSaveForm, VideoPutCoinForm, \
     VideoPutCommentForm, VideoGetCommentForm
+from ..comment.bucket_get_token import get_bucket_token
 from ..libs.error_code import NotFound, RequestMethodNotAllowed
 from ..libs.restful import params_error, success, unauthorized_error
 from exts import db
@@ -367,6 +368,7 @@ def get_video(id_):
         data = {
             'guest_Key': guest_Key,
             'guest_Secret': guest_Secret,
+            'security_token': get_bucket_token(),
             'video': video_path
         }
         return success(message="视频", data=data)
@@ -384,6 +386,7 @@ def get_cover(id_):
         data = {
             'guest_Key': guest_Key,
             'guest_Secret': guest_Secret,
+            'security_token': get_bucket_token(),
             'cover': cover_path
         }
         return success(message="视频封面", data=data)

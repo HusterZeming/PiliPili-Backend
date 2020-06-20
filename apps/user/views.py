@@ -16,6 +16,8 @@ from config import guest_Key, guest_Secret
 from config import bucket
 
 # 用户蓝图，访问需加前缀/user
+from ..comment.bucket_get_token import get_bucket_token
+
 user_bp = Blueprint('user', __name__, url_prefix='/user')
 
 basedir = "static/"
@@ -360,6 +362,7 @@ def get_avatar(id_):
         data = {
             'guest_Key': guest_Key,
             'guest_Secret': guest_Secret,
+            'security_token': get_bucket_token(),
             'avatar': avatar_path
         }
         return success(message="头像", data=data)
@@ -377,6 +380,7 @@ def get_background(id_):
         data = {
             'guest_Key': guest_Key,
             'guest_Secret': guest_Secret,
+            'security_token': get_bucket_token(),
             'background': background_path
         }
         return success(message="背景", data=data)
@@ -446,3 +450,5 @@ def get_space():
         return success(message="空间数据", data=data)
     else:
         return params_error(message="未查到用户")
+
+
