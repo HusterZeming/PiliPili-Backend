@@ -466,7 +466,12 @@ def danmuku(id_):
                                   , size=danmuku_size, background=danmuku_background, uid=user_id, target=id_)
             db.session.add(danmuku_new)
             db.session.commit()
-        return success(message="发布弹幕成功")
+            data = {
+                'danmuku': video.danmuku
+            }
+            return success(message="发布弹幕成功", data=data)
+        else:
+            return params_error(message=form.get_error())
     else:
         return params_error(message="未查到视频")
 
