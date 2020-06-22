@@ -8,13 +8,13 @@ from datetime import datetime
 from apps.user.verify_token import auth
 from config import ALL_METHODS
 from .forms import VideoUploadForm, VideoDeleteForm, ImageUploadForm, VideoSaveForm, VideoPutCoinForm, \
-    VideoPutCommentForm, VideoGetCommentForm
-from ..comment.bucket_get_token import get_bucket_token
-from ..libs.error_code import NotFound, RequestMethodNotAllowed
+    VideoPutCommentForm, VideoGetCommentForm, VideoPutDanmukuForm
+from apps.libs.bucket_get_token import get_bucket_token
+from ..libs.error_code import RequestMethodNotAllowed
 from ..libs.restful import params_error, success, unauthorized_error
 from exts import db
 from config import guest_Key, guest_Secret
-from models import Video, User, Comment
+from models import Video, User, Comment, Danmuku
 
 video_bp = Blueprint('video', __name__, url_prefix='/video')
 
@@ -442,6 +442,62 @@ def get_comment(id_):
         return success(data=data, message="获取评论成功")
     else:
         return params_error(message=form.get_error())
+
+
+@video_bp.route('/pv<int:id_>/danmuku', methods=ALL_METHODS)
+@auth.login_required
+def danmuku(id_):
+    if request.method != 'POST':
+        raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
+    video = db.session.query(Video).filter_by(id=id_).first()
+    user_id = g.user.uid
+    if video:
+        form = VideoPutDanmukuForm()
+        if form.validate_for_api() and form.validate():
+            video.danmuku = video.danmuku + 1
+            db.session.commit()
+            danmuku_content = form.content.data
+            danmuku_time = form.time.data
+            danmuku_type = form.type.data
+            danmuku_color = form.color.data
+            danmuku_size = form.size.data
+            danmuku_background = form.background.data
+            danmuku_new = Danmuku(content=danmuku_content, time=danmuku_time, type=danmuku_type, color=danmuku_color
+                                  , size=danmuku_size, background=danmuku_background, uid=user_id, target=id_)
+            db.session.add(danmuku_new)
+            db.session.commit()
+        return success(message="发布弹幕成功")
+    else:
+        return params_error(message="未查到视频")
+
+
+@video_bp.route("/pv<int:id_>/get-danmuku", methods=ALL_METHODS)
+def get_danmuku(id_):
+    if request.method != 'GET':
+        raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
+    video = db.session.query(Video).filter_by(id=id_).first()
+    list_danmuku = []
+    if video:
+        all_danmuku = db.session.query(Danmuku).filter_by(target=id_)
+    else:
+        return params_error(message="未找到视频")
+    if all_danmuku:
+        for danmuku_item in all_danmuku:
+            danmuku = {
+                'id': danmuku_item.id,
+                'content': danmuku_item.content,
+                'time': danmuku_item.time,
+                'type': danmuku_item.type,
+                'color': danmuku_item.color,
+                'size': danmuku_item.size,
+                'background': danmuku_item.background,
+                'author': danmuku_item.uid
+            }
+            list_danmuku.append(danmuku)
+    data = {
+         'all_danmuku': list_danmuku
+    }
+    return success(data=data, message="获取弹幕成功")
 
 
 @video_bp.route("/list-video", methods=ALL_METHODS)

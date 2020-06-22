@@ -24,6 +24,8 @@ class User(db.Model):
     sign = db.Column(db.String(70), default="")
     gender = db.Column(db.Boolean, default=False)
     coins = db.Column(db.Integer, default=0)
+    vip = db.Column(db.Integer, default=0)
+    vip_start = db.Column(db.DateTime)
     join_time = db.Column(db.DateTime, default=datetime.now)
     collections = db.Column(db.Text(5000))
     fans = db.Column(db.Text(10000))
@@ -62,6 +64,7 @@ class Video(db.Model):
     coins = db.Column(db.Integer, default=0)
     views = db.Column(db.Text(10000))
     comments = db.Column(db.Integer, default=0)
+    danmuku = db.Column(db.Integer, default=0)
     likes_user = db.Column(db.Text(10000))
     upload_time = db.Column(db.DateTime, default=datetime.now)
     # 建立外键关联
@@ -82,3 +85,18 @@ class Comment(db.Model):
     target = db.Column(db.Integer, db.ForeignKey("video.id", ondelete='CASCADE', onupdate='CASCADE'))
     replay_id = db.Column(db.Integer, db.ForeignKey("comment.id", ondelete='CASCADE', onupdate='CASCADE'))
 
+
+class Danmuku(db.Model):
+    __bind_key__ = bind_key
+    __tablename__ = 'danmuku'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    time = db.Column(db.Float, nullable=False)
+    type = db.Column(db.Integer, nullable=False)
+    content = db.Column(db.String(50), nullable=False)
+    color = db.Column(db.String(20), nullable=False)
+    size = db.Column(db.Integer, default=12)
+    background = db.Column(db.Integer, default=0)
+    # 建立外键关联
+    uid = db.Column(db.Integer, db.ForeignKey("user.id"))
+    author = relationship("User", backref="danmuku_user")
+    target = db.Column(db.Integer, db.ForeignKey("video.id", ondelete='CASCADE', onupdate='CASCADE'))

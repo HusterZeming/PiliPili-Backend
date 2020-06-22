@@ -3,10 +3,10 @@ from datetime import datetime
 from flask import Blueprint, request
 from .generate_token import generate_token
 from .forms import RegisterForm, LoginForm, UserPutCoinForm, UserFanForm, UserGetFanForm, UserPutUsernameForm, \
-    validate_email, validate_username, ImageUploadForm, UserPutSignForm, UserPutGenderForm
+    validate_email, validate_username, ImageUploadForm, UserPutSignForm, UserPutGenderForm, UserPutVipForm
 from models import User, Video
 from apps.libs.restful import unauthorized_error, params_error, success
-from apps.libs.error_code import RequestMethodNotAllowed, NotFound
+from apps.libs.error_code import RequestMethodNotAllowed
 from config import ALL_METHODS
 from .verify_token import auth
 from werkzeug.utils import secure_filename
@@ -16,7 +16,7 @@ from config import guest_Key, guest_Secret
 from config import bucket
 
 # 用户蓝图，访问需加前缀/user
-from ..comment.bucket_get_token import get_bucket_token
+from apps.libs.bucket_get_token import get_bucket_token
 
 user_bp = Blueprint('user', __name__, url_prefix='/user')
 
@@ -85,6 +85,7 @@ def details():
             'email': user.email,
             'gender': user.gender,
             'coins': user.coins,
+            'vip': user.vip,
             'fans_count': len(list(map(int, user.fans.split(',')))) if user.fans else 0,
             'followings_count': len(list(map(int, user.followings.split(',')))) if user.followings else 0
         }
@@ -112,7 +113,7 @@ def put_coin():
             data = {
                 'coins': coins + count,
             }
-            return success(message="购买硬币成功", data=data)
+            return success(message="购买P币成功", data=data)
     else:
         return params_error(message=form.get_error())
 
@@ -156,6 +157,7 @@ def open_details(id_):
             'id': user.id,
             'username': user.username,
             'gender': user.gender,
+            'vip': user.vip,
             'fans_count': len(list(map(int, user.fans.split(',')))) if user.fans else 0,
             'followings_count': len(list(map(int, user.followings.split(',')))) if user.followings else 0
         }
@@ -452,3 +454,33 @@ def get_space():
         return params_error(message="未查到用户")
 
 
+@user_bp.route('/put-vip', methods=ALL_METHODS)
+@auth.login_required
+def put_vip():
+    if request.method != 'PUT':
+        raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
+    form = UserPutVipForm()
+    if form.validate_for_api() and form.validate():
+        vip = form.vip.data
+        if vip <= 0:
+            return params_error(message="vip天数需大于0")
+        coins = form.coins.data
+        if vip <= 0:
+            return params_error(message="P币数需大于0")
+        user = db.session.query(User).filter_by(id=g.user.uid).first()
+        if user:
+            if coins > user.coins:
+                return params_error(message="用户P币数不够")
+            user.coins -= coins
+            user.vip += vip
+            user.vip_start = datetime.now().strftime('%Y-%m-%d')
+            db.session.commit()
+            data = {
+                'vip': user.vip,
+                'coins': user.coins
+            }
+            return success(message="购买大会员成功", data=data)
+        else:
+            return params_error(message="未查到用户")
+    else:
+        return params_error(message=form.get_error())

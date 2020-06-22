@@ -53,6 +53,11 @@ class UserPutGenderForm(BaseForm):
     gender = BooleanField()
 
 
+class UserPutVipForm(BaseForm):
+    vip = IntegerField(validators=[InputRequired(message="请输入vip持续天数")])
+    coins = IntegerField(validators=[InputRequired(message="请输入所扣P币")])
+
+
 class UserGetFanForm(BaseForm):
     id = IntegerField(validators=[InputRequired(message="请输入用户id")])
     page_count = IntegerField(validators=[InputRequired(message="请输入页面容量")])
