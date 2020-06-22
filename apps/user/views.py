@@ -1,5 +1,5 @@
+import datetime
 import os
-from datetime import datetime
 from flask import Blueprint, request
 from .generate_token import generate_token
 from .forms import RegisterForm, LoginForm, UserPutCoinForm, UserFanForm, UserGetFanForm, UserPutUsernameForm, \
@@ -85,7 +85,7 @@ def details():
             'email': user.email,
             'gender': user.gender,
             'coins': user.coins,
-            'vip': user.vip,
+            'vip': user.vip_end,
             'fans_count': len(list(map(int, user.fans.split(',')))) if user.fans else 0,
             'followings_count': len(list(map(int, user.followings.split(',')))) if user.followings else 0
         }
@@ -157,7 +157,7 @@ def open_details(id_):
             'id': user.id,
             'username': user.username,
             'gender': user.gender,
-            'vip': user.vip,
+            'vip': user.vip_end,
             'fans_count': len(list(map(int, user.fans.split(',')))) if user.fans else 0,
             'followings_count': len(list(map(int, user.followings.split(',')))) if user.followings else 0
         }
@@ -299,7 +299,7 @@ def upload_avatar():
         uid = g.user.uid
         filename = secure_filename(content.filename)
         path = basedir + "image/temp"
-        time = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
+        time = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
         if filename.endswith('jpg'):
             avatar_name = str(uid) + '-avatar.jpg'
         elif filename.endswith('png'):
@@ -332,7 +332,7 @@ def upload_background():
         uid = g.user.uid
         filename = secure_filename(content.filename)
         path = basedir + "image/temp"
-        time = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
+        time = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
         if filename.endswith('jpg'):
             background_name = str(uid) + '-background.jpg'
         elif filename.endswith('png'):
@@ -473,7 +473,7 @@ def put_vip():
                 return params_error(message="用户P币数不够")
             user.coins -= coins
             user.vip += vip
-            user.vip_start = datetime.now().strftime('%Y-%m-%d')
+            user.vip_end = (datetime.datetime.now() + datetime.timedelta(days=vip)).strftime('%Y-%m-%d')
             db.session.commit()
             data = {
                 'vip': user.vip,

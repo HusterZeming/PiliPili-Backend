@@ -25,7 +25,7 @@ class User(db.Model):
     gender = db.Column(db.Boolean, default=False)
     coins = db.Column(db.Integer, default=0)
     vip = db.Column(db.Integer, default=0)
-    vip_start = db.Column(db.DateTime)
+    vip_end = db.Column(db.DateTime)
     join_time = db.Column(db.DateTime, default=datetime.now)
     collections = db.Column(db.Text(5000))
     fans = db.Column(db.Text(10000))
