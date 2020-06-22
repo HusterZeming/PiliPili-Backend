@@ -465,7 +465,7 @@ def put_vip():
         if vip <= 0:
             return params_error(message="vip天数需大于0")
         coins = form.coins.data
-        if vip <= 0:
+        if coins <= 0:
             return params_error(message="P币数需大于0")
         user = db.session.query(User).filter_by(id=g.user.uid).first()
         if user:
@@ -473,10 +473,10 @@ def put_vip():
                 return params_error(message="用户P币数不够")
             user.coins -= coins
             user.vip += vip
-            user.vip_end = (datetime.datetime.now() + datetime.timedelta(days=vip)).strftime('%Y-%m-%d')
+            user.vip_end = (datetime.datetime.now() + datetime.timedelta(days=user.vip)).strftime('%Y-%m-%d')
             db.session.commit()
             data = {
-                'vip': user.vip,
+                'vip': user.vip_end,
                 'coins': user.coins
             }
             return success(message="购买大会员成功", data=data)
