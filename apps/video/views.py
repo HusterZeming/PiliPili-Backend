@@ -365,13 +365,7 @@ def get_video(id_):
             video.views = [user_id]
         video_path = video.video
         db.session.commit()
-        data = {
-            'guest_Key': guest_Key,
-            'guest_Secret': guest_Secret,
-            'security_token': get_bucket_token(),
-            'video': video_path
-        }
-        return success(message="视频", data=data)
+        return success(message="视频", data=get_bucket_token(video_path))
     else:
         return params_error(message="未查到视频")
 
@@ -383,13 +377,7 @@ def get_cover(id_):
     video = db.session.query(Video).filter_by(id=id_).first()
     if video:
         cover_path = video.cover
-        data = {
-            'guest_Key': guest_Key,
-            'guest_Secret': guest_Secret,
-            'security_token': get_bucket_token(),
-            'cover': cover_path
-        }
-        return success(message="视频封面", data=data)
+        return success(message="视频封面", data=get_bucket_token(cover_path))
     else:
         return params_error(message="未查到视频封面")
 

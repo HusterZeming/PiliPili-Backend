@@ -12,7 +12,6 @@ from .verify_token import auth
 from werkzeug.utils import secure_filename
 from flask import g
 from exts import db
-from config import guest_Key, guest_Secret
 from config import bucket
 
 # 用户蓝图，访问需加前缀/user
@@ -147,7 +146,7 @@ def put_username():
         return params_error(message=form.get_error())
 
 
-@user_bp.route('/<int:id_>/details', methods=ALL_METHODS)
+@user_bp.route('/uid<int:id_>/details', methods=ALL_METHODS)
 def open_details(id_):
     if request.method != 'GET':
         raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
@@ -361,13 +360,7 @@ def get_avatar(id_):
     user = db.session.query(User).filter_by(id=id_).first()
     if user:
         avatar_path = user.avatar
-        data = {
-            'guest_Key': guest_Key,
-            'guest_Secret': guest_Secret,
-            'security_token': get_bucket_token(),
-            'avatar': avatar_path
-        }
-        return success(message="头像", data=data)
+        return success(message="头像", data=get_bucket_token(avatar_path))
     else:
         return params_error(message="未查到用户头像")
 
@@ -379,13 +372,7 @@ def get_background(id_):
     user = db.session.query(User).filter_by(id=id_).first()
     if user:
         background_path = user.background
-        data = {
-            'guest_Key': guest_Key,
-            'guest_Secret': guest_Secret,
-            'security_token': get_bucket_token(),
-            'background': background_path
-        }
-        return success(message="背景", data=data)
+        return success(message="背景", data=get_bucket_token(background_path))
     else:
         return params_error(message="未查到用户背景")
 
