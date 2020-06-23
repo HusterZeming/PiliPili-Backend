@@ -5,7 +5,7 @@ from aliyunsdksts.request.v20150401 import AssumeRoleRequest
 from config import guest_Key, guest_Secret
 
 
-def get_bucket_token(background_path):
+def get_bucket_token(path):
     clt = client.AcsClient(guest_Key, guest_Secret, 'cn-beijing')
     # 构造"AssumeRole"请求
     request = AssumeRoleRequest.AssumeRoleRequest()
@@ -25,6 +25,6 @@ def get_bucket_token(background_path):
         'guest_key': key,
         'guest_secret': secret,
         'security_token': token,
-        'file': background_path
+        'file': path
     }
     return data
