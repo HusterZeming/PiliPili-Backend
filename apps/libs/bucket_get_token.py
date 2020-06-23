@@ -16,6 +16,7 @@ def get_bucket_token(path):
     # request.set_method('HMAC-SHA1')
     # 发起请求，并得到response
     response = clt.do_action_with_exception(request)
+    print(json.loads(response))
     credentials = (json.loads(response))['Credentials']
     json_credentials = json.dumps(credentials)
     token = (json.loads(json_credentials))['SecurityToken']
