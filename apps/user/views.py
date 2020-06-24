@@ -300,9 +300,9 @@ def upload_avatar():
         path = basedir + "image/temp"
         time = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
         if filename.endswith('jpg'):
-            avatar_name = str(uid) + '-avatar.jpg'
+            avatar_name = str(uid) + '-' + time + '-avatar.jpg'
         elif filename.endswith('png'):
-            avatar_name = str(uid) + '-avatar.png'
+            avatar_name = str(uid) + '-' + time + '-avatar.png'
         else:
             return params_error(message="文件类型错误")
         filename = filename + time + "-" + str(uid)
@@ -333,9 +333,9 @@ def upload_background():
         path = basedir + "image/temp"
         time = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
         if filename.endswith('jpg'):
-            background_name = str(uid) + '-background.jpg'
+            background_name = str(uid) + '-' + time + '-background.jpg'
         elif filename.endswith('png'):
-            background_name = str(uid) + '-background.png'
+            background_name = str(uid) + '-' + time + '-background.png'
         else:
             return params_error(message="文件类型错误")
         filename = filename + time + "-" + str(uid)
