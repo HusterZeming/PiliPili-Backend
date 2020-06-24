@@ -1,9 +1,12 @@
 import datetime
 import os
 from flask import Blueprint, request
+from werkzeug.security import generate_password_hash
+
 from .generate_token import generate_token
 from .forms import RegisterForm, LoginForm, UserPutCoinForm, UserFanForm, UserGetFanForm, UserPutUsernameForm, \
-    validate_email, validate_username, ImageUploadForm, UserPutSignForm, UserPutGenderForm, UserPutVipForm
+    validate_email, validate_username, ImageUploadForm, UserPutSignForm, UserPutGenderForm, UserPutVipForm, \
+    PutPasswordForm
 from models import User, Video
 from apps.libs.restful import unauthorized_error, params_error, success
 from apps.libs.error_code import RequestMethodNotAllowed
@@ -467,6 +470,45 @@ def put_vip():
                 'coins': user.coins
             }
             return success(message="购买大会员成功", data=data)
+        else:
+            return params_error(message="未查到用户")
+    else:
+        return params_error(message=form.get_error())
+
+
+@user_bp.route('/check-password', methods=ALL_METHODS)
+@auth.login_required
+def check_password():
+    if request.method != 'GET':
+        raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
+    form = PutPasswordForm()
+    if form.validate_for_api() and form.validate():
+        password = form.password.data
+        user = db.session.query(User).filter_by(id=g.user.uid).first()
+        if user:
+            if user.check_password(password):
+                return success(message="密码正确")
+            else:
+                return params_error(message="密码错误")
+        else:
+            return params_error(message="未查到用户")
+    else:
+        return params_error(message=form.get_error())
+
+
+@user_bp.route('/put-password', methods=ALL_METHODS)
+@auth.login_required
+def put_password():
+    if request.method != 'PUT':
+        raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
+    form = PutPasswordForm()
+    if form.validate_for_api() and form.validate():
+        password = form.password.data
+        user = db.session.query(User).filter_by(id=g.user.uid).first()
+        if user:
+            user._password = generate_password_hash(password)
+            db.session.commit()
+            return success(message="修改成功")
         else:
             return params_error(message="未查到用户")
     else:

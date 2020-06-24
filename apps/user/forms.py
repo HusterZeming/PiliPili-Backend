@@ -66,3 +66,7 @@ class UserGetFanForm(BaseForm):
 
 class ImageUploadForm(UploadBaseForm):
     content = FileField(validators=[FileAllowed('jpg', 'png')])
+
+
+class PutPasswordForm(BaseForm):
+    password = StringField(validators=[Length(6, 20, message="请正确输入密码")])
