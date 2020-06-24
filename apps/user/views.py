@@ -155,11 +155,18 @@ def open_details(id_):
         raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
     user = db.session.query(User).filter_by(id=id_).first()
     if user:
+        all_video = db.session.query(Video).filter_by(uid=id_).all()
+        likes = 0
+        if all_video:
+            for video in all_video:
+                likes += len(list(map(int, video.likes_user.split(',')))) if video.likes_user else 0
         data = {
             'id': user.id,
             'username': user.username,
             'gender': user.gender,
             'vip': user.vip_end,
+            'sign': user.sign,
+            'likes': likes,
             'fans_count': len(list(map(int, user.fans.split(',')))) if user.fans else 0,
             'followings_count': len(list(map(int, user.followings.split(',')))) if user.followings else 0
         }
