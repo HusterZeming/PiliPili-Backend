@@ -13,7 +13,7 @@ from apps.libs.bucket_get_token import get_bucket_token
 from ..libs.error_code import RequestMethodNotAllowed
 from ..libs.restful import params_error, success, unauthorized_error
 from exts import db
-from config import guest_Key, guest_Secret
+from moviepy.editor import VideoFileClip
 from models import Video, User, Comment, Danmuku
 
 video_bp = Blueprint('video', __name__, url_prefix='/video')
@@ -91,6 +91,8 @@ def save():
                     os.remove(cover_path + file)
             return params_error(message="cookie错误")
         title = form.title.data
+        sign = form.sign.data
+        type = form.type.data
         video_name = session['temp_video_name']
         cover_name = session['temp_cover_name']
         time = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
@@ -99,9 +101,12 @@ def save():
         cover_name_real = str(uid) + "-" + time + cover_type
         os.rename(video_path + video_name, video_path + video_name_real)
         os.rename(cover_path + cover_name, cover_path + cover_name_real)
+        clip = VideoFileClip(video_path + video_name_real)
         bucket.put_object_from_file(video_name_real, video_path + video_name_real)
         bucket.put_object_from_file(cover_name_real, cover_path + cover_name_real)
-        video = Video(title=title, video=video_name_real, cover=cover_name_real, uid=uid)
+        video = Video(title=title, video=video_name_real, cover=cover_name_real, sign=sign, long=clip.duration,
+                      type=type, uid=uid)
+        clip.close()
         db.session.add(video)
         db.session.commit()
         data = {
@@ -140,7 +145,6 @@ def like(id_):
     video = db.session.query(Video).filter_by(id=id_).first()
     user_id = g.user.uid
     if video:
-        user = db.session.query(User).filter_by(id=user_id).first()
         if video.likes_user:
             likes = list(map(int, video.likes_user.split(',')))
             if user_id in likes:
@@ -328,20 +332,24 @@ def get_details(id_):
         title = video.title
         collections = video.collections
         coins = video.coins
-        views = video.views
         uid = video.uid
         user = db.session.query(User).filter_by(id=uid).first()
         if not user:
             return params_error(message="未查到作者信息")
         data = {
+            'pv': video.id,
             'title': title,
+            'type': video.type,
+            'sign': video.sign,
+            'long': video.long,
             'likes': len(list(map(int, video.likes_user.split(',')))) if video.likes_user else 0,
             'collections': collections,
             'coins': coins,
             'views': len(list(map(int, video.views.split(',')))) if video.views else 0,
             'comments': video.comments,
             'time': video.upload_time.strftime('%Y-%m-%d-%H-%M-%S'),
-            'author': user.id
+            'author': user.id,
+            'bucket_cover': get_bucket_token(video.cover)
         }
         return success(message="详情", data=data)
     else:

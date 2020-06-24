@@ -17,7 +17,9 @@ class ImageUploadForm(UploadBaseForm):
 
 
 class VideoSaveForm(BaseForm):
-    title = StringField(validators=[InputRequired(message="请输入文章标题")])
+    title = StringField(validators=[InputRequired(message="请输入视频标题")])
+    sign = StringField(validators=[InputRequired(message="请输入视频简介")])
+    type = IntegerField(validators=[InputRequired(message="请输入视频类分类")])
 
 
 class VideoPutCoinForm(BaseForm):
