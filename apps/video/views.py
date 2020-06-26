@@ -217,7 +217,7 @@ def put_coin(id_):
         user = db.session.query(User).filter_by(id=uid).first()
         if user:
             coins_target = user.coins
-            user.coins = coins_target + (count if count < 2 else count / 2)
+            user.coins = coins_target + count / 2
             db.session.commit()
         data = {
             'coins': coins,
@@ -324,6 +324,7 @@ def delete():
 
 
 @video_bp.route('/pv<int:id_>/details', methods=ALL_METHODS)
+@auth.login_required
 def get_details(id_):
     if request.method != 'GET':
         raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
@@ -333,9 +334,24 @@ def get_details(id_):
         collections = video.collections
         coins = video.coins
         uid = video.uid
-        user = db.session.query(User).filter_by(id=uid).first()
-        if not user:
+        author = db.session.query(User).filter_by(id=uid).first()
+        if not author:
             return params_error(message="未查到作者信息")
+        is_liked = False
+        if video.likes_user:
+            likes_user = list(map(int, video.likes_user.split(',')))
+            if g.user.uid in likes_user:
+                is_liked = True
+        else:
+            is_liked = False
+        is_collected = False
+        user = db.session.query(User).filter_by(id=uid).first()
+        if user.collections:
+            collections = list(map(int, user.collections.split(',')))
+            if video.id in collections:
+                is_collected = True
+        else:
+            is_collected = False
         data = {
             'pv': video.id,
             'title': title,
@@ -348,8 +364,10 @@ def get_details(id_):
             'views': len(list(map(int, video.views.split(',')))) if video.views else 0,
             'comments': video.comments,
             'time': video.upload_time.strftime('%Y-%m-%d-%H-%M-%S'),
-            'author': user.id,
-            'bucket_cover': get_bucket_token(video.cover)
+            'author': author.id,
+            'bucket_cover': get_bucket_token(video.cover),
+            'is_liked': is_liked,
+            'is_collected': is_collected
         }
         return success(message="详情", data=data)
     else:
@@ -406,7 +424,12 @@ def comment(id_):
             comment_new = Comment(content=comment_content, uid=user_id, target=id_)
             db.session.add(comment_new)
             db.session.commit()
-        return success(message="评论成功")
+            data = {
+                'id': comment_new.id
+            }
+            return success(message="评论成功", data=data)
+        else:
+            return params_error(message=form.get_error())
     else:
         return params_error(message="未查到视频")
 
@@ -531,3 +554,4 @@ def list_video():
         'video_list': video
     }
     return success(data=data, message="获取视频成功")
+

@@ -520,3 +520,14 @@ def put_password():
             return params_error(message="未查到用户")
     else:
         return params_error(message=form.get_error())
+
+
+@user_bp.route("/uid<int:id_>/get-video", methods=ALL_METHODS)
+def get_video(id_):
+    if request.method != 'GET':
+        raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
+    video_list = db.session.query(Video).filter_by(uid=id_).all()
+    data = {
+         'video_list': video_list
+    }
+    return success(data=data, message="获取投稿成功")
