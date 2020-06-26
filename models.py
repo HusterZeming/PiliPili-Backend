@@ -61,7 +61,7 @@ class Video(db.Model):
     cover = db.Column(db.String(100), nullable=False)
     title = db.Column(db.String(100), nullable=False)
     type = db.Column(db.Integer, default=0)
-    sign = db.Column(db.String(100))
+    sign = db.Column(db.String(250))
     long = db.Column(db.Integer, default=0)
     collections = db.Column(db.Integer, default=0)
     coins = db.Column(db.Integer, default=0)
