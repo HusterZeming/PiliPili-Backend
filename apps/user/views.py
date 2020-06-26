@@ -526,7 +526,11 @@ def put_password():
 def get_video(id_):
     if request.method != 'GET':
         raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
-    video_list = db.session.query(Video).filter_by(uid=id_).all()
+    all_video = db.session.query(Video).filter_by(uid=id_).all()
+    video_list = []
+    if all_video:
+        for video in all_video:
+            video_list.append(video.id)
     data = {
          'video_list': video_list
     }
