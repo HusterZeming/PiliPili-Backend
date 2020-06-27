@@ -215,7 +215,7 @@ def cancel():
 
 @video_bp.route('/cancel-new', methods=ALL_METHODS)
 @auth.login_required
-def cancel():
+def cancel_new():
     if request.method != 'DELETE':
         raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
     user = db.session.query(User).filter_by(id=g.user.uid).first()
