@@ -94,9 +94,12 @@ def replay(id_):
         comment_replay = Comment(content=comment_content, uid=g.user.uid, target=comment.target, replay_id=comment.id)
         db.session.add(comment_replay)
         db.session.commit()
+        data = {
+            'id': comment_replay.id
+        }
     else:
         return params_error(message=form.get_error())
-    return success(message="回复成功")
+    return success(message="回复成功", data=data)
 
 
 @comment_bp.route("/comment<int:id_>/get-replay", methods=ALL_METHODS)
