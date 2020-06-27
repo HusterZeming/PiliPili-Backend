@@ -98,7 +98,7 @@ def upload_cover():
 
 @video_bp.route('/cover-new', methods=ALL_METHODS)
 @auth.login_required
-def upload_video_new():
+def upload_cover_new():
     if request.method != 'POST' and 'content' in request.files:
         raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
     form = VideoUploadForm()
