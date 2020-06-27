@@ -12,6 +12,10 @@ class VideoUploadForm(UploadBaseForm):
     content = FileField(validators=[FileAllowed('mp4')])
 
 
+class VideoNewUploadForm(BaseForm):
+    filename = StringField(validators=[Length(1, 80, message="文件名最多80字"), InputRequired(message="请输入文件名")])
+
+
 class ImageUploadForm(UploadBaseForm):
     content = FileField(validators=[FileAllowed('jpg', 'png')])
 

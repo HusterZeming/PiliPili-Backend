@@ -8,7 +8,7 @@ from datetime import datetime
 from apps.user.verify_token import auth
 from config import ALL_METHODS
 from .forms import VideoUploadForm, VideoDeleteForm, ImageUploadForm, VideoSaveForm, VideoPutCoinForm, \
-    VideoPutCommentForm, VideoGetCommentForm, VideoPutDanmukuForm
+    VideoPutCommentForm, VideoGetCommentForm, VideoPutDanmukuForm, VideoNewUploadForm
 from apps.libs.bucket_get_token import get_bucket_token
 from ..libs.error_code import RequestMethodNotAllowed
 from ..libs.restful import params_error, success, unauthorized_error
@@ -49,12 +49,11 @@ def upload_video():
 def upload_video_new():
     if request.method != 'POST' and 'content' in request.files:
         raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
-    form = VideoUploadForm()
-    if form.validate():
-        content = request.files['content']
+    form = VideoNewUploadForm()
+    if form.validate_for_api() and form.validate():
         uid = g.user.uid
         # 保存视频
-        filename = secure_filename(content.filename)
+        filename = form.filename.data
         if not filename.endswith('mp4'):
             return params_error(message="文件类型错误")
         filename = 'uid-' + str(uid) + '-' + filename
@@ -101,12 +100,11 @@ def upload_cover():
 def upload_cover_new():
     if request.method != 'POST' and 'content' in request.files:
         raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
-    form = VideoUploadForm()
-    if form.validate():
-        content = request.files['content']
+    form = VideoNewUploadForm()
+    if form.validate_for_api() and form.validate():
         uid = g.user.uid
         # 保存视频
-        filename = secure_filename(content.filename)
+        filename = form.filename.data
         if not filename.endswith('jpg') and not filename.endswith('png'):
             return params_error(message="文件类型错误")
         filename = 'uid-' + str(uid) + '-' + filename
