@@ -61,7 +61,7 @@ def upload_video_new():
         user.video_name_temp = filename
         db.session.commit()
         data = {
-            'bucket_cover': get_bucket_token(filename),
+            'bucket_video': get_bucket_token(filename),
         }
         return success(message="上传视频成功", data=data)
     else:
