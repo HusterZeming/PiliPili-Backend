@@ -32,6 +32,8 @@ class User(db.Model):
     followings = db.Column(db.Text(10000))
     avatar = db.Column(db.String(100))
     background = db.Column(db.String(100))
+    video_name_temp=db.Column(db.String(100))
+    cover_name_temp = db.Column(db.String(100))
 
     def __init__(self, username, password, email):
         self.username = username
@@ -57,12 +59,12 @@ class Video(db.Model):
     __bind_key__ = bind_key
     __tablename__ = 'video'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    video = db.Column(db.String(100), nullable=False)
-    cover = db.Column(db.String(100), nullable=False)
-    title = db.Column(db.String(100), nullable=False)
+    video = db.Column(db.String(100))
+    cover = db.Column(db.String(100))
+    title = db.Column(db.String(100))
     type = db.Column(db.Integer, default=0)
     sign = db.Column(db.String(250))
-    long = db.Column(db.Integer, default=0)
+    long = db.Column(db.String(80))
     collections = db.Column(db.Integer, default=0)
     coins = db.Column(db.Integer, default=0)
     views = db.Column(db.Text(10000))

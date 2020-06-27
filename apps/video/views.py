@@ -44,6 +44,31 @@ def upload_video():
         return params_error(message=form.get_error())
 
 
+@video_bp.route('/upload-new', methods=ALL_METHODS)
+@auth.login_required
+def upload_video_new():
+    if request.method != 'POST' and 'content' in request.files:
+        raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
+    form = VideoUploadForm()
+    if form.validate():
+        content = request.files['content']
+        uid = g.user.uid
+        # 保存视频
+        filename = secure_filename(content.filename)
+        if not filename.endswith('mp4'):
+            return params_error(message="文件类型错误")
+        filename = 'uid-' + str(uid) + '-' + filename
+        user = db.session.query(User).filter_by(id=uid).first()
+        user.video_name_temp = filename
+        db.session.commit()
+        data = {
+            'bucket_cover': get_bucket_token(filename),
+        }
+        return success(message="上传视频成功", data=data)
+    else:
+        return params_error(message=form.get_error())
+
+
 @video_bp.route('/cover', methods=ALL_METHODS)
 @auth.login_required
 def upload_cover():
@@ -67,6 +92,31 @@ def upload_cover():
         session['temp_cover_name'] = filename
         content.save(os.path.join(path, filename))
         return success(message="上传封面成功")
+    else:
+        return params_error(message=form.get_error())
+
+
+@video_bp.route('/cover-new', methods=ALL_METHODS)
+@auth.login_required
+def upload_video_new():
+    if request.method != 'POST' and 'content' in request.files:
+        raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
+    form = VideoUploadForm()
+    if form.validate():
+        content = request.files['content']
+        uid = g.user.uid
+        # 保存视频
+        filename = secure_filename(content.filename)
+        if not filename.endswith('jpg') and not filename.endswith('png'):
+            return params_error(message="文件类型错误")
+        filename = 'uid-' + str(uid) + '-' + filename
+        user = db.session.query(User).filter_by(id=uid).first()
+        user.cover_name_temp = filename
+        db.session.commit()
+        data = {
+            'bucket_cover': get_bucket_token(filename),
+        }
+        return success(message="上传封面成功", data=data)
     else:
         return params_error(message=form.get_error())
 
@@ -120,6 +170,32 @@ def save():
         return params_error(message=form.get_error())
 
 
+@video_bp.route('/save-new', methods=ALL_METHODS)
+@auth.login_required
+def save_new():
+    if request.method != 'POST':
+        raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
+    form = VideoSaveForm()
+    if form.validate_for_api() and form.validate():
+        title = form.title.data
+        sign = form.sign.data
+        long = form.long.data
+        user = db.session.query(User).filter_by(id=g.user.uid).first()
+        if not user.cover_name_temp or not user.video_name_temp:
+            return params_error(message="未上传视频或封面")
+        video = Video(title=title, video=user.video_name_temp, cover=user.cover_name_temp, sign=sign, long=long,
+                      type=type, uid=user.id)
+        db.session.add(video)
+        db.session.commit()
+        data = {
+            'pv': video.id,
+            'time': video.upload_time
+        }
+        return success(data=data, message="保存视频成功")
+    else:
+        return params_error(message=form.get_error())
+
+
 @video_bp.route('/cancel', methods=ALL_METHODS)
 @auth.login_required
 def cancel():
@@ -134,6 +210,22 @@ def cancel():
     for file in os.listdir(cover_path):
         if file.endswith(str(uid)):
             os.remove(cover_path + file)
+    return success(message="取消成功")
+
+
+@video_bp.route('/cancel-new', methods=ALL_METHODS)
+@auth.login_required
+def cancel():
+    if request.method != 'DELETE':
+        raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
+    user = db.session.query(User).filter_by(id=g.user.uid).first()
+    if user.video_name_temp:
+        bucket.delete_object(user.video_name_temp)
+    if user.cover_name_temp:
+        bucket.delete_object(user.cover_name_temp)
+    user.video_name_temp = ""
+    user.cover_name_temp = ""
+    db.session.commit()
     return success(message="取消成功")
 
 
@@ -519,7 +611,7 @@ def get_danmuku(id_):
             }
             list_danmuku.append(danmuku)
     data = {
-         'all_danmuku': list_danmuku
+        'all_danmuku': list_danmuku
     }
     return success(data=data, message="获取弹幕成功")
 
@@ -554,4 +646,3 @@ def list_video():
         'video_list': video
     }
     return success(data=data, message="获取视频成功")
-
