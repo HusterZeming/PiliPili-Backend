@@ -187,6 +187,8 @@ def save_new():
         video = Video(title=title, video=user.video_name_temp, cover=user.cover_name_temp, sign=sign, duration=duration,
                       type=type, uid=user.id)
         db.session.add(video)
+        user.video_name_temp = ""
+        user.cover_name_temp = ""
         db.session.commit()
         return success(message="保存视频成功")
     else:
