@@ -186,11 +186,7 @@ def save_new():
                       type=type, uid=user.id)
         db.session.add(video)
         db.session.commit()
-        data = {
-            'pv': video.id,
-            'time': video.upload_time
-        }
-        return success(data=data, message="保存视频成功")
+        return success(message="保存视频成功")
     else:
         return params_error(message=form.get_error())
 
