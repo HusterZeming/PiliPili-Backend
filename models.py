@@ -32,7 +32,7 @@ class User(db.Model):
     followings = db.Column(db.Text(10000))
     avatar = db.Column(db.String(100))
     background = db.Column(db.String(100))
-    video_name_temp=db.Column(db.String(100))
+    video_name_temp = db.Column(db.String(100))
     cover_name_temp = db.Column(db.String(100))
 
     def __init__(self, username, password, email):

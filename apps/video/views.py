@@ -47,7 +47,7 @@ def upload_video():
 @video_bp.route('/upload-new', methods=ALL_METHODS)
 @auth.login_required
 def upload_video_new():
-    if request.method != 'POST' and 'content' in request.files:
+    if request.method != 'POST':
         raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
     form = VideoNewUploadForm()
     if form.validate_for_api() and form.validate():
@@ -99,7 +99,7 @@ def upload_cover():
 @video_bp.route('/cover-new', methods=ALL_METHODS)
 @auth.login_required
 def upload_cover_new():
-    if request.method != 'POST' and 'content' in request.files:
+    if request.method != 'POST':
         raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
     form = VideoNewUploadForm()
     if form.validate_for_api() and form.validate():
@@ -187,6 +187,7 @@ def save_new():
         video = Video(title=title, video=user.video_name_temp, cover=user.cover_name_temp, sign=sign, duration=duration,
                       type=type, uid=user.id)
         db.session.add(video)
+        db.session.commit()
         user.video_name_temp = ""
         user.cover_name_temp = ""
         db.session.commit()
