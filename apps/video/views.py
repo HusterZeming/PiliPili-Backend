@@ -176,14 +176,14 @@ def save_new():
     if request.method != 'POST':
         raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
     form = VideoSaveForm()
+    user = db.session.query(User).filter_by(id=g.user.uid).first()
+    if not user.cover_name_temp or not user.video_name_temp:
+        return params_error(message="未上传视频或封面")
     if form.validate_for_api() and form.validate():
         title = form.title.data
         sign = form.sign.data
         duration = form.duration.data
         type = form.type.data
-        user = db.session.query(User).filter_by(id=g.user.uid).first()
-        if not user.cover_name_temp or not user.video_name_temp:
-            return params_error(message="未上传视频或封面")
         video = Video(title=title, video=user.video_name_temp, cover=user.cover_name_temp, sign=sign, duration=duration,
                       type=type, uid=user.id)
         db.session.add(video)
