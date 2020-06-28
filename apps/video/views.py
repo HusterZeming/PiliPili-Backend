@@ -57,15 +57,13 @@ def upload_video_new():
             bucket.delete_object(user.video_name_temp)
         # 保存视频
         filename = form.filename.data
-        if not filename.endswith('mp4'):
+        if not filename.endswith('mp4') or not filename.endswith('mpeg'):
             return params_error(message="文件类型错误")
         time = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
         filename = 'uid-' + str(uid) + '-' + time + '-' + filename
         user.video_name_temp = filename
         db.session.commit()
-        data = {
-            'bucket_video': get_bucket_token(filename),
-        }
+        data = get_bucket_token(filename)
         return success(message="上传视频成功", data=data)
     else:
         return params_error(message=form.get_error())
@@ -117,9 +115,7 @@ def upload_cover_new():
         filename = 'uid-' + str(uid) + '-' + time + '-' + filename
         user.cover_name_temp = filename
         db.session.commit()
-        data = {
-            'bucket_cover': get_bucket_token(filename),
-        }
+        data = get_bucket_token(filename)
         return success(message="上传封面成功", data=data)
     else:
         return params_error(message=form.get_error())
