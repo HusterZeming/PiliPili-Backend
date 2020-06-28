@@ -308,6 +308,9 @@ def upload_avatar():
         uid = g.user.uid
         filename = secure_filename(content.filename)
         path = basedir + "image/temp"
+        user = db.session.query(User).filter_by(id=uid).first()
+        if user.avatar:
+            bucket.delete_object(user.avatar)
         time = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
         if filename.endswith('jpg'):
             avatar_name = str(uid) + '-' + time + '-avatar.jpg'
@@ -341,6 +344,9 @@ def upload_background():
         uid = g.user.uid
         filename = secure_filename(content.filename)
         path = basedir + "image/temp"
+        user = db.session.query(User).filter_by(id=uid).first()
+        if user.background:
+            bucket.delete_object(user.background)
         time = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
         if filename.endswith('jpg'):
             background_name = str(uid) + '-' + time + '-background.jpg'
@@ -351,7 +357,6 @@ def upload_background():
         filename = filename + time + "-" + str(uid)
         content.save(os.path.join(path, filename))
         bucket.put_object_from_file(background_name, path + '/' + filename)
-        user = db.session.query(User).filter_by(id=uid).first()
         user.background = background_name
         db.session.commit()
         os.remove(path + '/' + filename)

@@ -178,6 +178,7 @@ def save_new():
         title = form.title.data
         sign = form.sign.data
         long = form.long.data
+        type = form.type.data
         user = db.session.query(User).filter_by(id=g.user.uid).first()
         if not user.cover_name_temp or not user.video_name_temp:
             return params_error(message="未上传视频或封面")
