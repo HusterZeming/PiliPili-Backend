@@ -213,7 +213,7 @@ def cancel():
 @video_bp.route('/cancel-new', methods=ALL_METHODS)
 @auth.login_required
 def cancel_new():
-    if request.method != 'DELETE':
+    if request.method != 'PUT':
         raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
     form = VideoNewCancelForm()
     if form.validate_for_api() and form.validate():
@@ -398,7 +398,7 @@ def un_collect(id_):
 @video_bp.route("/delete", methods=ALL_METHODS)
 @auth.login_required
 def delete():
-    if request.method != 'DELETE':
+    if request.method != 'PUT':
         raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
     form = VideoDeleteForm()
     if form.validate_for_api and form.validate():
