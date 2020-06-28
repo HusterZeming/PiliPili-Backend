@@ -52,12 +52,15 @@ def upload_video_new():
     form = VideoNewUploadForm()
     if form.validate_for_api() and form.validate():
         uid = g.user.uid
+        user = db.session.query(User).filter_by(id=uid).first()
+        if user.video_name_temp:
+            bucket.delete_object(user.video_name_temp)
         # 保存视频
         filename = form.filename.data
         if not filename.endswith('mp4'):
             return params_error(message="文件类型错误")
-        filename = 'uid-' + str(uid) + '-' + filename
-        user = db.session.query(User).filter_by(id=uid).first()
+        time = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
+        filename = 'uid-' + str(uid) + '-' + time + '-' + filename
         user.video_name_temp = filename
         db.session.commit()
         data = {
@@ -103,12 +106,15 @@ def upload_cover_new():
     form = VideoNewUploadForm()
     if form.validate_for_api() and form.validate():
         uid = g.user.uid
+        user = db.session.query(User).filter_by(id=uid).first()
+        if user.cover_name_temp:
+            bucket.delete_object(user.cover_name_temp)
         # 保存视频
         filename = form.filename.data
         if not filename.endswith('jpg') and not filename.endswith('png'):
             return params_error(message="文件类型错误")
-        filename = 'uid-' + str(uid) + '-' + filename
-        user = db.session.query(User).filter_by(id=uid).first()
+        time = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
+        filename = 'uid-' + str(uid) + '-' + time + '-' + filename
         user.cover_name_temp = filename
         db.session.commit()
         data = {

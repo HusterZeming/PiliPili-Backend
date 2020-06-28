@@ -128,6 +128,7 @@ def details(id_):
     comment = db.session.query(Comment).filter_by(id=id_).first()
     if comment:
         data = {
+            'id': comment.id,
             'content': comment.content,
             'likes': len(list(map(int, comment.likes_user.split(',')))) if comment.likes_user else 0,
             'time': comment.upload_time.strftime('%Y-%m-%d-%H-%M-%S'),
