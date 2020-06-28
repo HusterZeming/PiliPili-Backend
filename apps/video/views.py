@@ -8,7 +8,7 @@ from datetime import datetime
 from apps.user.verify_token import auth
 from config import ALL_METHODS
 from .forms import VideoUploadForm, VideoDeleteForm, ImageUploadForm, VideoSaveForm, VideoPutCoinForm, \
-    VideoPutCommentForm, VideoGetCommentForm, VideoPutDanmukuForm, VideoNewUploadForm
+    VideoPutCommentForm, VideoGetCommentForm, VideoPutDanmukuForm, VideoNewUploadForm, VideoNewCancelForm
 from apps.libs.bucket_get_token import get_bucket_token
 from ..libs.error_code import RequestMethodNotAllowed
 from ..libs.restful import params_error, success, unauthorized_error
@@ -219,14 +219,18 @@ def cancel():
 def cancel_new():
     if request.method != 'DELETE':
         raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
-    user = db.session.query(User).filter_by(id=g.user.uid).first()
-    if user.video_name_temp:
-        bucket.delete_object(user.video_name_temp)
-    if user.cover_name_temp:
-        bucket.delete_object(user.cover_name_temp)
-    user.video_name_temp = ""
-    user.cover_name_temp = ""
-    db.session.commit()
+    form = VideoNewCancelForm()
+    if form.validate_for_api() and form.validate():
+        goto_bucket = form.goto_bucket.data
+        user = db.session.query(User).filter_by(id=g.user.uid).first()
+        if goto_bucket:
+            if user.video_name_temp:
+                bucket.delete_object(user.video_name_temp)
+            if user.cover_name_temp:
+                bucket.delete_object(user.cover_name_temp)
+        user.video_name_temp = ""
+        user.cover_name_temp = ""
+        db.session.commit()
     return success(message="取消成功")
 
 

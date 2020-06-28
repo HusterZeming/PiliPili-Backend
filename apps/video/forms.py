@@ -1,6 +1,6 @@
 from base_form import BaseForm, UploadBaseForm
 from wtforms.validators import InputRequired, Length
-from wtforms import StringField, IntegerField, FloatField
+from wtforms import StringField, IntegerField, FloatField, BooleanField
 from flask_wtf.file import FileField, FileAllowed
 from flask import g
 from models import Video, User
@@ -14,6 +14,10 @@ class VideoUploadForm(UploadBaseForm):
 
 class VideoNewUploadForm(BaseForm):
     filename = StringField(validators=[Length(1, 80, message="文件名最多80字"), InputRequired(message="请输入文件名")])
+
+
+class VideoNewCancelForm(BaseForm):
+    goto_bucket = BooleanField(InputRequired(message="请输入取消类型"))
 
 
 class ImageUploadForm(UploadBaseForm):
