@@ -57,7 +57,7 @@ def upload_video_new():
             bucket.delete_object(user.video_name_temp)
         # 保存视频
         filename = form.filename.data
-        if not filename.endswith('mp4') or not filename.endswith('mpeg'):
+        if not filename.endswith('mp4') and not filename.endswith('mpeg'):
             return params_error(message="文件类型错误")
         time = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
         filename = 'uid-' + str(uid) + '-' + time + '-' + filename
