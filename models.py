@@ -64,7 +64,7 @@ class Video(db.Model):
     title = db.Column(db.String(100))
     type = db.Column(db.Integer, default=0)
     sign = db.Column(db.String(250))
-    long = db.Column(db.String(80))
+    duration = db.Column(db.String(80))
     collections = db.Column(db.Integer, default=0)
     coins = db.Column(db.Integer, default=0)
     views = db.Column(db.Text(10000))

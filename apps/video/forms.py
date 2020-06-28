@@ -24,7 +24,7 @@ class VideoSaveForm(BaseForm):
     title = StringField(validators=[Length(1, 80, message="标题最多80字"), InputRequired(message="请输入视频标题")])
     sign = StringField(validators=[Length(0, 233, message="简介最多233字")])
     type = IntegerField(validators=[InputRequired(message="请输入视频类分类")])
-    long = StringField(validators=[Length(1, 80, message="时长最多80位"), InputRequired(message="请输入视频时长")])
+    duration = StringField(validators=[Length(1, 80, message="时长最多80位"), InputRequired(message="请输入视频时长")])
 
 
 class VideoPutCoinForm(BaseForm):

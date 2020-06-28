@@ -152,7 +152,7 @@ def save():
         clip = VideoFileClip(video_path + video_name_real)
         bucket.put_object_from_file(video_name_real, video_path + video_name_real)
         bucket.put_object_from_file(cover_name_real, cover_path + cover_name_real)
-        video = Video(title=title, video=video_name_real, cover=cover_name_real, sign=sign, long=clip.duration,
+        video = Video(title=title, video=video_name_real, cover=cover_name_real, sign=sign, duration=clip.duration,
                       type=type, uid=uid)
         clip.close()
         db.session.add(video)
@@ -177,12 +177,12 @@ def save_new():
     if form.validate_for_api() and form.validate():
         title = form.title.data
         sign = form.sign.data
-        long = form.long.data
+        duration = form.duration.data
         type = form.type.data
         user = db.session.query(User).filter_by(id=g.user.uid).first()
         if not user.cover_name_temp or not user.video_name_temp:
             return params_error(message="未上传视频或封面")
-        video = Video(title=title, video=user.video_name_temp, cover=user.cover_name_temp, sign=sign, long=long,
+        video = Video(title=title, video=user.video_name_temp, cover=user.cover_name_temp, sign=sign, duration=duration,
                       type=type, uid=user.id)
         db.session.add(video)
         db.session.commit()
@@ -444,7 +444,7 @@ def get_details(id_):
             'title': title,
             'type': video.type,
             'sign': video.sign,
-            'long': video.long,
+            'duration': video.duration,
             'likes': len(list(map(int, video.likes_user.split(',')))) if video.likes_user else 0,
             'collections': collections,
             'coins': coins,
