@@ -395,25 +395,20 @@ def un_collect(id_):
         return params_error(message="未查到视频信息")
 
 
-@video_bp.route("/delete", methods=ALL_METHODS)
+@video_bp.route("/pv<int:id_>/delete", methods=ALL_METHODS)
 @auth.login_required
-def delete():
-    if request.method != 'PUT':
+def delete(id_):
+    if request.method != 'DELETE':
         raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
-    form = VideoDeleteForm()
-    if form.validate_for_api and form.validate():
-        video_id = form.pv.data
-        video = db.session.query(Video).filter_by(id=video_id).first()
-        user_id = g.user.uid
-        if not user_id == video.uid:
-            return unauthorized_error(message="没有权限")
-        bucket.delete_object(video.video)
-        bucket.delete_object(video.cover)
-        db.session.delete(video)
-        db.session.commit()
-        return success(message="删除视频成功")
-    else:
-        return params_error(message=form.get_error())
+    video = db.session.query(Video).filter_by(id=id_).first()
+    user_id = g.user.uid
+    if not user_id == video.uid:
+        return unauthorized_error(message="没有权限")
+    bucket.delete_object(video.video)
+    bucket.delete_object(video.cover)
+    db.session.delete(video)
+    db.session.commit()
+    return success(message="删除视频成功")
 
 
 @video_bp.route('/pv<int:id_>/details', methods=ALL_METHODS)
