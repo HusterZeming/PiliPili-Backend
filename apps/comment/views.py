@@ -146,6 +146,7 @@ def dfs(replay_id, id):
 
 
 @comment_bp.route("/comment<int:id_>/details", methods=ALL_METHODS)
+@auth.login_required
 def details(id_):
     if request.method != 'GET':
         raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
@@ -154,6 +155,11 @@ def details(id_):
         replay_to = db.session.query(Comment).filter_by(id=comment.replay_id).first()
         if replay_to:
             user = db.session.query(User).filter_by(id=replay_to.uid).first()
+        is_liked = False
+        if comment.likes_user:
+            likes = list(map(int, comment.likes_user.split(',')))
+            if g.user.uid in likes:
+                is_liked = True
         data = {
             'id': comment.id,
             'content': comment.content,
@@ -162,7 +168,8 @@ def details(id_):
             'replay_id': comment.replay_id,
             'author': comment.uid,
             'replay_to_author': user.id if replay_to else None,
-            'replay_to_author_name': user.username if replay_to else None
+            'replay_to_author_name': user.username if replay_to else None,
+            'is_liked': is_liked
         }
         return success(data=data, message="获取评论成功")
     else:

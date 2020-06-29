@@ -398,6 +398,33 @@ def un_collect(id_):
         return params_error(message="未查到视频信息")
 
 
+@video_bp.route('/pv<int:id_>/is-liked-and-collected', methods=ALL_METHODS)
+@auth.login_required
+def is_liked_and_collected(id_):
+    if request.method != 'GET':
+        raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
+    video = db.session.query(Video).filter_by(id=id_).first()
+    user = db.session.query(User).filter_by(id=g.user.uid).first()
+    if video:
+        is_liked = False
+        is_collected = False
+        if video.likes_user:
+            likes = list(map(int, video.likes_user.split(',')))
+            if user.id in likes:
+                is_liked = True
+        if user.collections:
+            collections = list(map(int, user.collections.split(',')))
+            if video.id in collections:
+                is_collected = True
+        data = {
+            'is_liked': is_liked,
+            'is_collected': is_collected
+        }
+        return success(message="获取是否点赞收藏成功", data=data)
+    else:
+        return params_error(message="未查到视频信息")
+
+
 @video_bp.route("/pv<int:id_>/delete", methods=ALL_METHODS)
 @auth.login_required
 def delete(id_):
