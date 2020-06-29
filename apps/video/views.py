@@ -7,8 +7,8 @@ from werkzeug.utils import secure_filename
 from datetime import datetime
 from apps.user.verify_token import auth
 from config import ALL_METHODS
-from .forms import VideoUploadForm, VideoDeleteForm, ImageUploadForm, VideoSaveForm, VideoPutCoinForm, \
-    VideoPutCommentForm, VideoGetCommentForm, VideoPutDanmukuForm, VideoNewUploadForm, VideoNewCancelForm
+from .forms import VideoUploadForm, ImageUploadForm, VideoSaveForm, VideoPutCoinForm, \
+    VideoPutCommentForm, VideoPutDanmukuForm, VideoNewUploadForm, VideoNewCancelForm
 from apps.libs.bucket_get_token import get_bucket_token
 from ..libs.error_code import RequestMethodNotAllowed
 from ..libs.restful import params_error, success, unauthorized_error
@@ -525,17 +525,15 @@ def comment(id_):
         return params_error(message="未查到视频")
 
 
-@video_bp.route("/pv<int:id_>/get-comment", methods=ALL_METHODS)
-def get_comment(id_):
+@video_bp.route("/pv<int:id_>/get-comment/type<int:type_>", methods=ALL_METHODS)
+def get_comment(id_, type_):
     if request.method != 'GET':
         raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
-    form = VideoGetCommentForm()
-    if form.validate_for_api() and form.validate():
-        type = form.type.data
+    if type_ == 0 or type_ == 1:
         video = db.session.query(Video).filter_by(id=id_).first()
         comment_id = []
         if video:
-            if type == 1:
+            if type_ == 1:
                 all_comment = db.session.query(Comment).filter_by(target=id_, replay_id=None) \
                     .order_by(db.desc(Comment.likes_user)).all()
             else:
@@ -551,7 +549,7 @@ def get_comment(id_):
         }
         return success(data=data, message="获取评论成功")
     else:
-        return params_error(message=form.get_error())
+        return params_error("类型错误")
 
 
 @video_bp.route('/pv<int:id_>/danmuku', methods=ALL_METHODS)
