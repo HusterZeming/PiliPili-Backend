@@ -152,7 +152,8 @@ def details(id_):
     comment = db.session.query(Comment).filter_by(id=id_).first()
     if comment:
         replay_to = db.session.query(Comment).filter_by(id=comment.replay_id).first()
-        user = db.session.query(User).filter_by(id=replay_to.uid).first()
+        if replay_to:
+            user = db.session.query(User).filter_by(id=replay_to.uid).first()
         data = {
             'id': comment.id,
             'content': comment.content,
@@ -160,8 +161,8 @@ def details(id_):
             'time': comment.upload_time.strftime('%Y-%m-%d %H:%M:%S'),
             'replay_id': comment.replay_id,
             'author': comment.uid,
-            'replay_to_author': user.id,
-            'replay_to_author_name': user.username
+            'replay_to_author': user.id if replay_to else '',
+            'replay_to_author_name': user.username if replay_to else ''
         }
         return success(data=data, message="获取评论成功")
     else:
