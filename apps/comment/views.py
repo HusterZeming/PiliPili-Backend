@@ -6,7 +6,7 @@ from ..libs.error_code import RequestMethodNotAllowed
 from ..libs.restful import params_error, success, unauthorized_error
 from .forms import CommentReplyForm
 from exts import db
-from models import Video, Comment
+from models import Video, Comment, User
 
 comment_bp = Blueprint('comment', __name__, url_prefix='/comment')
 
@@ -121,18 +121,47 @@ def get_replay(id_):
     return success(data=data, message="获取回复成功")
 
 
+@comment_bp.route("/comment<int:id_>/get-replay-dfs", methods=ALL_METHODS)
+def get_replay_dfs(id_):
+    if request.method != 'GET':
+        raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
+    comment = db.session.query(Comment).filter_by(id=id_).first()
+    replay_id = []
+    if comment:
+        dfs(replay_id, id_)
+    else:
+        return params_error(message="未找到评论")
+    data = {
+        'all_replays': replay_id
+    }
+    return success(data=data, message="获取回复成功")
+
+
+def dfs(replay_id, id):
+    all_replay = db.session.query(Comment).filter_by(replay_id=id).all()
+    if all_replay:
+        for replay_item in all_replay:
+            replay_id.append(replay_item.id)
+            dfs(replay_id, replay_item.id)
+
+
 @comment_bp.route("/comment<int:id_>/details", methods=ALL_METHODS)
 def details(id_):
     if request.method != 'GET':
         raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
     comment = db.session.query(Comment).filter_by(id=id_).first()
     if comment:
+        replay_to = db.session.query(Comment).filter_by(id=comment.replay_id).first()
+        user = db.session.query(User).filter_by(id=replay_to.uid).first()
         data = {
             'id': comment.id,
             'content': comment.content,
             'likes': len(list(map(int, comment.likes_user.split(',')))) if comment.likes_user else 0,
-            'time': comment.upload_time.strftime('%Y-%m-%d-%H-%M-%S'),
-            'author': comment.uid
+            'time': comment.upload_time.strftime('%Y-%m-%d %H:%M:%S'),
+            'replay_id': comment.replay_id,
+            'author': comment.uid,
+            'replay_to_author': user.id,
+            'replay_to_author_name': user.username
         }
         return success(data=data, message="获取评论成功")
     else:

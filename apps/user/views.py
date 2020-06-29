@@ -311,7 +311,7 @@ def upload_avatar():
         user = db.session.query(User).filter_by(id=uid).first()
         if user.avatar:
             bucket.delete_object(user.avatar)
-        time = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
+        time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         if filename.endswith('jpg'):
             avatar_name = str(uid) + '-' + time + '-avatar.jpg'
         elif filename.endswith('png'):
