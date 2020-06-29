@@ -161,8 +161,8 @@ def details(id_):
             'time': comment.upload_time.strftime('%Y-%m-%d %H:%M:%S'),
             'replay_id': comment.replay_id,
             'author': comment.uid,
-            'replay_to_author': user.id if replay_to else '',
-            'replay_to_author_name': user.username if replay_to else ''
+            'replay_to_author': user.id if replay_to else None,
+            'replay_to_author_name': user.username if replay_to else None
         }
         return success(data=data, message="获取评论成功")
     else:
