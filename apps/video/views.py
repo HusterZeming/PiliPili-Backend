@@ -481,6 +481,7 @@ def get_details(id_):
             'coins': coins,
             'views': len(list(map(int, video.views.split(',')))) if video.views else 0,
             'comments': video.comments,
+            'danmuku': video.danmuku,
             'time': video.upload_time.strftime('%Y-%m-%d %H:%M:%S'),
             'author': author.id,
             'bucket_cover': get_bucket_token(video.cover),
