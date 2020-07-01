@@ -470,6 +470,11 @@ def get_details(id_):
                 is_collected = True
         else:
             is_collected = False
+        is_followed = False
+        if user.fans:
+            fans = list(map(int, user.fans.split(',')))
+            if g.user.uid in fans:
+                is_followed = True
         data = {
             'pv': video.id,
             'title': title,
@@ -486,7 +491,8 @@ def get_details(id_):
             'author': author.id,
             'bucket_cover': get_bucket_token(video.cover),
             'is_liked': is_liked,
-            'is_collected': is_collected
+            'is_collected': is_collected,
+            'is_followed': is_followed
         }
         return success(message="详情", data=data)
     else:
