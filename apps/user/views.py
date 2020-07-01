@@ -531,11 +531,23 @@ def put_password():
 def get_video(id_):
     if request.method != 'GET':
         raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
-    all_video = db.session.query(Video).filter_by(uid=id_).all()
+    all_video = db.session.query(Video).filter_by(uid=id_).order_by(
+        db.desc(Video.upload_time)).all()
     video_list = []
     if all_video:
         for video in all_video:
-            video_list.append(video.id)
+            video_item = {
+                'pv': video.id,
+                'title': video.title,
+                'type': video.type,
+                'duration': video.duration,
+                'likes': len(list(map(int, video.likes_user.split(',')))) if video.likes_user else 0,
+                'views': len(list(map(int, video.views.split(',')))) if video.views else 0,
+                'danmuku': video.danmuku,
+                'time': video.upload_time.strftime('%Y-%m-%d %H:%M:%S'),
+                'bucket_cover': get_bucket_token(video.cover)
+            }
+            video_list.append(video_item)
     data = {
          'video_list': video_list
     }

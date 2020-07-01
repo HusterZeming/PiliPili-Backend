@@ -668,7 +668,74 @@ def list_video():
     if request.method != 'GET':
         raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
     video = []
-    all_video = db.session.query(Video).filter(Video.id).order_by(db.desc(Video.upload_time)).all()
+    all_video = db.session.query(Video).filter(Video.id).filter(Video.type == 1).order_by(
+        db.desc(Video.upload_time)).all()
+    length = len(all_video)
+    if length > 50:
+        candidate_video = all_video[0:50]
+    else:
+        candidate_video = all_video[0:length]
+    i = 1
+    length = len(candidate_video)
+    candidate_video.sort(key=lambda Video: (len(list(map(int, Video.views.split(',')))) if Video.views else 0)
+                                           * 4 + Video.coins * 2 + Video.comments * 2 + Video.collections * 2,
+                         reverse=True)
+    if length < 8:
+        for video_item in candidate_video:
+            video.append(video_item.id)
+    while i < 9 and length > 8:
+        video_id = random.randint(1, length)
+        if video_id in video:
+            continue
+        else:
+            video.append(video_id)
+            i += 1
+    data = {
+        'video_list': video
+    }
+    return success(data=data, message="获取视频成功")
+
+
+@video_bp.route("/list-video-anime", methods=ALL_METHODS)
+def list_video_anime():
+    if request.method != 'GET':
+        raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
+    video = []
+    all_video = db.session.query(Video).filter(Video.id).filter(Video.type == 3).order_by(
+        db.desc(Video.upload_time)).all()
+    length = len(all_video)
+    if length > 50:
+        candidate_video = all_video[0:50]
+    else:
+        candidate_video = all_video[0:length]
+    i = 1
+    length = len(candidate_video)
+    candidate_video.sort(key=lambda Video: (len(list(map(int, Video.views.split(',')))) if Video.views else 0)
+                                           * 4 + Video.coins * 2 + Video.comments * 2 + Video.collections * 2,
+                         reverse=True)
+    if length < 8:
+        for video_item in candidate_video:
+            video.append(video_item.id)
+    while i < 9 and length > 8:
+        video_id = random.randint(1, length)
+        if video_id in video:
+            continue
+        else:
+            video.append(video_id)
+            i += 1
+    data = {
+        'video_list': video
+    }
+    return success(data=data, message="获取视频成功")
+
+
+@video_bp.route("/list-video-color", methods=ALL_METHODS)
+def list_video_color():
+    if request.method != 'GET':
+        raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
+    video = []
+    all_video = db.session.query(Video).filter(Video.id).filter(Video.type == 2).order_by(
+        db.desc(Video.upload_time)).all()
     length = len(all_video)
     if length > 50:
         candidate_video = all_video[0:50]
