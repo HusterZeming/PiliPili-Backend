@@ -99,7 +99,7 @@ def details():
 @user_bp.route('/put-coin', methods=ALL_METHODS)
 @auth.login_required
 def put_coin():
-    if request.method != 'PUT':
+    if request.method != 'PUT' and request.method != 'POST':
         raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
     form = UserPutCoinForm()
     if form.validate_for_api() and form.validate():
