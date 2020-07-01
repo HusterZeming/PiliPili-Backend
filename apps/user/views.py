@@ -123,7 +123,7 @@ def put_coin():
 @user_bp.route('/put-username', methods=ALL_METHODS)
 @auth.login_required
 def put_username():
-    if request.method != 'PUT':
+    if request.method != 'PUT' and request.method != 'POST':
         raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
     form = UserPutUsernameForm()
     if form.validate_for_api() and form.validate():
@@ -416,7 +416,7 @@ def upload_sign():
 @user_bp.route('/put-gender', methods=ALL_METHODS)
 @auth.login_required
 def put_gender():
-    if request.method != 'PUT':
+    if request.method != 'PUT' and request.method != 'POST':
         raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
     form = UserPutGenderForm()
     if form.validate_for_api and form.validate():
@@ -459,7 +459,7 @@ def get_space():
 @user_bp.route('/put-vip', methods=ALL_METHODS)
 @auth.login_required
 def put_vip():
-    if request.method != 'PUT':
+    if request.method != 'PUT' and request.method != 'POST':
         raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
     form = UserPutVipForm()
     if form.validate_for_api() and form.validate():
@@ -511,7 +511,7 @@ def check_password():
 @user_bp.route('/put-password', methods=ALL_METHODS)
 @auth.login_required
 def put_password():
-    if request.method != 'PUT':
+    if request.method != 'PUT' and request.method != 'POST':
         raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
     form = PutPasswordForm()
     if form.validate_for_api() and form.validate():
