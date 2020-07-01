@@ -104,6 +104,7 @@ def replay(id_):
 
 
 @comment_bp.route("/comment<int:id_>/get-replay", methods=ALL_METHODS)
+@auth.login_required
 def get_replay(id_):
     if request.method != 'GET':
         raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
@@ -149,6 +150,7 @@ def get_replay(id_):
 
 
 @comment_bp.route("/comment<int:id_>/get-replay-dfs", methods=ALL_METHODS)
+@auth.login_required
 def get_replay_dfs(id_):
     if request.method != 'GET':
         raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
