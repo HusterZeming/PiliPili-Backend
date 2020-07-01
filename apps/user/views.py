@@ -552,3 +552,25 @@ def get_video(id_):
          'video_list': video_list
     }
     return success(data=data, message="获取投稿成功")
+
+
+@user_bp.route('/uid<int:id_>/is-followed', methods=ALL_METHODS)
+@auth.login_required
+def is_followed(id_):
+    if request.method != 'GET':
+        raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
+    user = db.session.query(User).filter_by(id=id_).first()
+    if user:
+        is_followed = False
+        if user.fans:
+            fans = list(map(int, user.fans.split(',')))
+            if g.user.uid in fans:
+                is_followed = True
+        data = {
+            'is_followed': is_followed
+        }
+        return success(message="获取成功", data=data)
+    else:
+        return params_error(message="未查到用户")
+
+
