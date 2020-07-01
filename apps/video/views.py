@@ -554,6 +554,7 @@ def comment(id_):
 
 
 @video_bp.route("/pv<int:id_>/get-comment/type<int:type_>", methods=ALL_METHODS)
+@auth.login_required
 def get_comment(id_, type_):
     if request.method != 'GET':
         raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
