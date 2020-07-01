@@ -2,6 +2,7 @@ from flask import request
 from flask import Blueprint, g
 from apps.user.verify_token import auth
 from config import ALL_METHODS
+from ..libs.bucket_get_token import get_bucket_token
 from ..libs.error_code import RequestMethodNotAllowed
 from ..libs.restful import params_error, success, unauthorized_error
 from .forms import CommentReplyForm
@@ -107,16 +108,42 @@ def get_replay(id_):
     if request.method != 'GET':
         raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
     comment = db.session.query(Comment).filter_by(id=id_).first()
-    replay_id = []
+    replay_list = []
+    replay_all = []
     if comment:
-        all_replay = db.session.query(Comment).filter_by(replay_id=id_).all()
-        if all_replay:
-            for replay_item in all_replay:
-                replay_id.append(replay_item.id)
+        dfs(replay_list, id_)
     else:
         return params_error(message="未找到评论")
+    if replay_list:
+        count = 0
+        for comment_item in replay_list:
+            replay_to = db.session.query(Comment).filter_by(id=comment_item.replay_id).first()
+            if replay_to:
+                user = db.session.query(User).filter_by(id=replay_to.uid).first()
+            is_liked = False
+            if comment_item.likes_user:
+                likes = list(map(int, comment_item.likes_user.split(',')))
+                if g.user.uid in likes:
+                    is_liked = True
+            author = db.session.query(User).filter_by(id=comment_item.uid).first()
+            comment = {
+                'id': comment_item.id,
+                'content': comment_item.content,
+                'likes': len(list(map(int, comment_item.likes_user.split(',')))) if comment_item.likes_user else 0,
+                'time': comment_item.upload_time.strftime('%Y-%m-%d %H:%M:%S'),
+                'replay_id': comment_item.replay_id,
+                'author': comment_item.uid,
+                'author_name': author.username,
+                'replay_to_author': user.id if replay_to else None,
+                'replay_to_author_name': user.username if replay_to else None,
+                'is_liked': is_liked
+            }
+            replay_all.append(comment)
+            count += 1
+            if count > 3:
+                break
     data = {
-        'all_replays': replay_id
+        'all_comments': replay_all
     }
     return success(data=data, message="获取回复成功")
 
@@ -126,23 +153,48 @@ def get_replay_dfs(id_):
     if request.method != 'GET':
         raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
     comment = db.session.query(Comment).filter_by(id=id_).first()
-    replay_id = []
+    replay_list = []
+    replay_all = []
     if comment:
-        dfs(replay_id, id_)
+        dfs(replay_list, id_)
     else:
         return params_error(message="未找到评论")
+    if replay_list:
+        for comment_item in replay_list:
+            replay_to = db.session.query(Comment).filter_by(id=comment_item.replay_id).first()
+            if replay_to:
+                user = db.session.query(User).filter_by(id=replay_to.uid).first()
+            is_liked = False
+            if comment_item.likes_user:
+                likes = list(map(int, comment_item.likes_user.split(',')))
+                if g.user.uid in likes:
+                    is_liked = True
+            author = db.session.query(User).filter_by(id=comment_item.uid).first()
+            comment = {
+                'id': comment_item.id,
+                'content': comment_item.content,
+                'likes': len(list(map(int, comment_item.likes_user.split(',')))) if comment_item.likes_user else 0,
+                'time': comment_item.upload_time.strftime('%Y-%m-%d %H:%M:%S'),
+                'replay_id': comment_item.replay_id,
+                'author': comment_item.uid,
+                'author_name': author.username,
+                'replay_to_author': user.id if replay_to else None,
+                'replay_to_author_name': user.username if replay_to else None,
+                'is_liked': is_liked
+            }
+            replay_all.append(comment)
     data = {
-        'all_replays': replay_id
+        'all_comments': replay_all
     }
     return success(data=data, message="获取回复成功")
 
 
-def dfs(replay_id, id):
+def dfs(replay_list, id):
     all_replay = db.session.query(Comment).filter_by(replay_id=id).all()
     if all_replay:
         for replay_item in all_replay:
-            replay_id.append(replay_item.id)
-            dfs(replay_id, replay_item.id)
+            replay_list.append(replay_item)
+            dfs(replay_list, replay_item.id)
 
 
 @comment_bp.route("/comment<int:id_>/details", methods=ALL_METHODS)
@@ -160,16 +212,17 @@ def details(id_):
             likes = list(map(int, comment.likes_user.split(',')))
             if g.user.uid in likes:
                 is_liked = True
+        author = db.session.query(User).filter_by(id=comment.uid).first()
         data = {
-            'id': comment.id,
-            'content': comment.content,
-            'likes': len(list(map(int, comment.likes_user.split(',')))) if comment.likes_user else 0,
-            'time': comment.upload_time.strftime('%Y-%m-%d %H:%M:%S'),
-            'replay_id': comment.replay_id,
-            'author': comment.uid,
-            'replay_to_author': user.id if replay_to else None,
-            'replay_to_author_name': user.username if replay_to else None,
-            'is_liked': is_liked
+                'id': comment.id,
+                'content': comment.content,
+                'likes': len(list(map(int, comment.likes_user.split(',')))) if comment.likes_user else 0,
+                'time': comment.upload_time.strftime('%Y-%m-%d %H:%M:%S'),
+                'replay_id': comment.replay_id,
+                'author': comment.uid,
+                'author_name': author.username,
+                'replay_to_author': user.id if replay_to else None,
+                'replay_to_author_name': user.username if replay_to else None,
         }
         return success(data=data, message="获取评论成功")
     else:

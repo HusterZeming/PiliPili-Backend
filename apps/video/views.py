@@ -559,7 +559,7 @@ def get_comment(id_, type_):
         raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
     if type_ == 0 or type_ == 1:
         video = db.session.query(Video).filter_by(id=id_).first()
-        comment_id = []
+        comments = []
         if video:
             if type_ == 1:
                 all_comment = db.session.query(Comment).filter_by(target=id_, replay_id=None) \
@@ -571,9 +571,30 @@ def get_comment(id_, type_):
             return params_error(message="未找到视频")
         if all_comment:
             for comment_item in all_comment:
-                comment_id.append(comment_item.id)
+                is_liked = False
+                replay_to = db.session.query(Comment).filter_by(id=comment_item.replay_id).first()
+                if replay_to:
+                    user = db.session.query(User).filter_by(id=replay_to.uid).first()
+                if comment_item.likes_user:
+                    likes = list(map(int, comment_item.likes_user.split(',')))
+                    if g.user.uid in likes:
+                        is_liked = True
+                author = db.session.query(User).filter_by(id=comment_item.uid).first()
+                comment = {
+                    'id': comment_item.id,
+                    'content': comment_item.content,
+                    'likes': len(list(map(int, comment_item.likes_user.split(',')))) if comment_item.likes_user else 0,
+                    'time': comment_item.upload_time.strftime('%Y-%m-%d %H:%M:%S'),
+                    'author': comment_item.uid,
+                    'author_name': author.username,
+                    'replay_id': comment_item.replay_id,
+                    'replay_to_author': user.id if replay_to else None,
+                    'replay_to_author_name': user.username if replay_to else None,
+                    'is_liked': is_liked
+                }
+                comments.append(comment)
         data = {
-            'all_comments': comment_id
+            'all_comments': comments
         }
         return success(data=data, message="获取评论成功")
     else:
