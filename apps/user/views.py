@@ -325,9 +325,9 @@ def list_fans(id_):
                     if g.user.uid in fans:
                         is_followed = True
                 user = {
-                    'id': user.id,
-                    'username': user.username,
-                    'sign': user.sign,
+                    'id': item_user.id,
+                    'username': item_user.username,
+                    'sign': item_user.sign,
                     'is_followed': is_followed
                 }
                 list_.append(user)
@@ -381,9 +381,9 @@ def list_followings(id_):
                     if g.user.uid in fans:
                         is_followed = True
                 user = {
-                    'id': user.id,
-                    'username': user.username,
-                    'sign': user.sign,
+                    'id': item_user.id,
+                    'username': item_user.username,
+                    'sign': item_user.sign,
                     'is_followed': is_followed
                 }
                 list_.append(user)
