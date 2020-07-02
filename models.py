@@ -34,6 +34,7 @@ class User(db.Model):
     background = db.Column(db.String(100))
     video_name_temp = db.Column(db.String(100))
     cover_name_temp = db.Column(db.String(100))
+    think_name_temp = db.Column(db.String(100))
 
     def __init__(self, username, password, email):
         self.username = username
@@ -105,3 +106,16 @@ class Danmuku(db.Model):
     uid = db.Column(db.Integer, db.ForeignKey("user.id"))
     author = relationship("User", backref="danmuku_user")
     target = db.Column(db.Integer, db.ForeignKey("video.id", ondelete='CASCADE', onupdate='CASCADE'))
+
+
+class Think(db.Model):
+    __bind_key__ = bind_key
+    __tablename__ = 'thinks'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    upload_time = db.Column(db.DateTime, default=datetime.now)
+    content = db.Column(db.String(200), nullable=False)
+    photo = db.Column(db.String(100))
+    is_video = db.Column(db.Boolean)
+    # 建立外键关联
+    uid = db.Column(db.Integer, db.ForeignKey("user.id"))
+    author = relationship("User", backref="thinks_user")

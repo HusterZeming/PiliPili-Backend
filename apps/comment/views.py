@@ -72,10 +72,10 @@ def delete(id_):
     if request.method != 'DELETE':
         raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
     comment = db.session.query(Comment).filter_by(id=id_).first()
-    user_id = g.user.uid
-    if not user_id == comment.uid:
-        return unauthorized_error(message="没有权限")
     video = db.session.query(Video).filter_by(id=comment.target).first()
+    user_id = g.user.uid
+    if not user_id == comment.uid and not user_id == video.uid:
+        return unauthorized_error(message="没有权限")
     if video:
         video.comments = video.comments - 1 if video.comments else 0
     db.session.delete(comment)

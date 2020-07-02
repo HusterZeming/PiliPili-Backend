@@ -2,6 +2,7 @@ from flask import Flask as _Flask
 from flask.json import JSONEncoder as _JSONEncoder
 from datetime import date
 import config
+from apps.thinks.views import think_bp
 from exts import db
 from apps.libs.error_code import ServerError
 from apps.user.views import user_bp
@@ -30,6 +31,7 @@ def create_app():
     app.register_blueprint(user_bp)
     app.register_blueprint(video_bp)
     app.register_blueprint(comment_bp)
+    app.register_blueprint(think_bp)
     app.config.from_object(config)
     db.init_app(app)
     return app

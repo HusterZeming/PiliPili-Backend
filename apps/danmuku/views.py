@@ -16,10 +16,10 @@ def delete(id_):
     if request.method != 'DELETE':
         raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
     danmuku = db.session.query(Danmuku).filter_by(id=id_).first()
-    user_id = g.user.uid
-    if not user_id == danmuku.uid:
-        return unauthorized_error(message="没有权限")
     video = db.session.query(Video).filter_by(id=danmuku.target).first()
+    user_id = g.user.uid
+    if not user_id == danmuku.uid and user_id == video.uid:
+        return unauthorized_error(message="没有权限")
     if video:
         video.danmuku = video.danmuku - 1 if video.danmuku else 0
     db.session.delete(danmuku)
