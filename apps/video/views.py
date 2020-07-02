@@ -465,8 +465,8 @@ def get_details(id_):
         is_collected = False
         user = db.session.query(User).filter_by(id=uid).first()
         if user.collections:
-            collections = list(map(int, user.collections.split(',')))
-            if video.id in collections:
+            collections_list = list(map(int, user.collections.split(',')))
+            if video.id in collections_list:
                 is_collected = True
         else:
             is_collected = False
