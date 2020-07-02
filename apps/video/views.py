@@ -492,6 +492,7 @@ def get_details(id_):
             'danmuku': video.danmuku,
             'time': video.upload_time.strftime('%Y-%m-%d %H:%M:%S'),
             'author': author.id,
+            'author_name': author.username,
             'bucket_cover': get_bucket_token(video.cover),
             'is_liked': is_liked,
             'is_collected': is_collected,
