@@ -278,6 +278,7 @@ def unlike(id_):
                 video.likes_user = None
         else:
             return params_error(message="点赞数为0")
+        db.session.commit()
         data = {
             'likes': len(list(map(int, video.likes_user.split(',')))) if video.likes_user else 0
         }
@@ -316,7 +317,7 @@ def put_coin(id_):
             user.coins = coins_target + count / 2
             db.session.commit()
         data = {
-            'coins': coins,
+            'coins': user.coins
         }
         return success(message="投币成功", data=data)
     else:
@@ -337,7 +338,7 @@ def collect(id_):
             if video.id in collections:
                 return params_error(message="已收藏")
         video_collections = video.collections
-        video_collections = video_collections + 1
+        video_collections += 1
         video.collections = video_collections
         pv = video.id
         db.session.commit()
@@ -372,8 +373,10 @@ def un_collect(id_):
             collections = list(map(int, user.collections.split(',')))
             if video.id not in collections:
                 return params_error(message="未收藏")
+        else:
+            return params_error(message="未收藏")
         video_collections = video.collections
-        video_collections = video_collections - 1
+        video_collections -= 1
         video.collections = video_collections
         pv = video.id
         db.session.commit()
