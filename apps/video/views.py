@@ -295,7 +295,7 @@ def put_coin(id_):
     count = form.coins.data
     user_id = g.user.uid
     user = db.session.query(User).filter_by(id=user_id).first()
-    if count <= 0:
+    if not count or count <= 0:
         return params_error(message="币数错误")
     if user:
         coins_user = user.coins
