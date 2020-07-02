@@ -290,7 +290,7 @@ def unlike(id_):
 @video_bp.route('/pv<int:id_>/put-coin', methods=ALL_METHODS)
 @auth.login_required
 def put_coin(id_):
-    if request.method != 'PUT':
+    if request.method != 'PUT' and request.method != 'POST':
         raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
     form = VideoPutCoinForm()
     count = form.coins.data
