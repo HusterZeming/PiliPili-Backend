@@ -316,6 +316,7 @@ def put_coin(id_):
             coins_target = user.coins
             user.coins = coins_target + count / 2
             db.session.commit()
+        user = db.session.query(User).filter_by(id=user_id).first()
         data = {
             'coins': user.coins
         }
