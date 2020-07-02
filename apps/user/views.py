@@ -187,6 +187,9 @@ def fan():
         if user_id == target_id:
             return params_error(message="无法关注自己")
         user = db.session.query(User).filter_by(id=user_id).first()
+        target_user = db.session.query(User).filter_by(id=target_id).first()
+        if not target_user:
+            return params_error(message="未查到用户")
         if user:
             if user.followings:
                 followings = list(map(int, user.followings.split(',')))
@@ -199,7 +202,6 @@ def fan():
                 followings = [target_id]
                 user.followings = followings
                 db.session.commit()
-            target_user = db.session.query(User).filter_by(id=target_id).first()
             if target_user.fans:
                 fans = list(map(int, target_user.fans.split(',')))
                 if user_id not in fans:
@@ -233,6 +235,8 @@ def un_fan():
             return params_error(message="无法取关自己")
         user = db.session.query(User).filter_by(id=user_id).first()
         if user:
+            if not user.followings:
+                return params_error(message="关注数为0")
             followings = list(map(int, user.followings.split(',')))
             if not followings:
                 return params_error(message="关注数为0")
@@ -245,6 +249,8 @@ def un_fan():
                 user.followings = None
             db.session.commit()
             target_user = db.session.query(User).filter_by(id=target_id).first()
+            if not target_user.fans:
+                return params_error(message="粉丝数为0")
             fans = list(map(int, target_user.fans.split(',')))
             if not fans:
                 return params_error(message="粉丝数为0")
@@ -295,6 +301,98 @@ def get_fans():
             return success(message="获取成功", data=data)
     else:
         return params_error(message=form.get_error())
+    
+    
+@user_bp.route('/uid<int:id_>/list-fans', methods=ALL_METHODS)
+@auth.login_required
+def list_fans(id_):
+    if request.method != 'GET':
+        raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
+    user = db.session.query(User).filter_by(id=id_).first()
+    if user:
+        list_ = []
+        if not user.fans:
+            data = {
+                'list': list_
+            }
+        else:
+            all_fans = list(map(int, user.fans.split(',')))
+            for item_id in all_fans:
+                item_user = db.session.query(User).filter_by(id=item_id).first()
+                is_followed = False
+                if item_user.fans:
+                    fans = list(map(int, item_user.fans.split(',')))
+                    if g.user.uid in fans:
+                        is_followed = True
+                user = {
+                    'id': user.id,
+                    'username': user.username,
+                    'sign': user.sign,
+                    'is_followed': is_followed
+                }
+                list_.append(user)
+            data = {
+                   'list': list_
+            }
+        return success(message="获取成功", data=data)
+    else:
+        return params_error(message='用户未找到')
+
+
+@user_bp.route('/uid<int:id_>/get-followings', methods=ALL_METHODS)
+def get_followings(id_):
+    if request.method != 'GET':
+        raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
+    user = db.session.query(User).filter_by(id=id_).first()
+    if user:
+        if not user.followings:
+            data = {
+                'list': ''
+            }
+        else:
+            all_followings = list(map(int, user.followings.split(',')))
+            data = {
+                   'list': all_followings
+            }
+        return success(message="获取成功", data=data)
+    else:
+        return params_error(message='用户未找到')
+
+
+@user_bp.route('/uid<int:id_>/list-followings', methods=ALL_METHODS)
+@auth.login_required
+def list_followings(id_):
+    if request.method != 'GET':
+        raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
+    user = db.session.query(User).filter_by(id=id_).first()
+    if user:
+        list_ = []
+        if not user.followings:
+            data = {
+                'list': list_
+            }
+        else:
+            all_followings = list(map(int, user.followings.split(',')))
+            for item_id in all_followings:
+                item_user = db.session.query(User).filter_by(id=item_id).first()
+                is_followed = False
+                if item_user.fans:
+                    fans = list(map(int, item_user.fans.split(',')))
+                    if g.user.uid in fans:
+                        is_followed = True
+                user = {
+                    'id': user.id,
+                    'username': user.username,
+                    'sign': user.sign,
+                    'is_followed': is_followed
+                }
+                list_.append(user)
+            data = {
+                   'list': list_
+            }
+        return success(message="获取成功", data=data)
+    else:
+        return params_error(message='用户未找到')
 
 
 @user_bp.route('/upload-avatar', methods=ALL_METHODS)
