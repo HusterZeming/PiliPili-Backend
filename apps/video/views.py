@@ -771,3 +771,49 @@ def list_video_color():
         'video_list': video
     }
     return success(data=data, message="获取视频成功")
+
+
+@video_bp.route("/pv<int:id_>/list-video-related", methods=ALL_METHODS)
+def list_video_related(id_):
+    if request.method != 'GET':
+        raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
+    video_list = []
+    video = db.session.query(Video).filter(Video.id == id_).first()
+    all_video = db.session.query(Video).filter(Video.uid == video.uid).all()
+    length = len(all_video)
+    if length > 8:
+        candidate_video = all_video[0:9]
+    else:
+        candidate_video = all_video[0:length]
+    candidate_video.remove(video)
+    all_video = db.session.query(Video).filter(Video.id).filter(Video.type == 1).filter(Video.uid != video.uid).order_by(
+        db.desc(Video.upload_time)).all()
+    length = 8 - len(candidate_video)
+    if len(all_video) <= 16 + length:
+        video_temp = all_video[0:8 + length]
+        for video_item in video_temp:
+            candidate_video.append(video_item)
+    else:
+        i = 1
+        while i < length + 9 and i < len(all_video) + length:
+            video_id = random.randint(1, len(all_video))
+            if all_video[video_id] in candidate_video:
+                continue
+            else:
+                candidate_video.append(all_video[video_id])
+                i += 1
+    for video_item in candidate_video:
+        user = db.session.query(User).filter_by(id=video_item.uid).first()
+        video = {
+            'id': video_item.id,
+            'title': video_item.title,
+            'views': video_item.views,
+            'danmuku': video_item.danmuku,
+            'author_name': user.username,
+            'bucket_cover': get_bucket_token(video_item.cover)
+        }
+        video_list.append(video)
+    data = {
+        'video_list': video_list
+    }
+    return success(data=data, message="获取视频成功")
