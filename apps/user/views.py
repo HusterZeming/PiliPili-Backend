@@ -178,7 +178,7 @@ def open_details(id_):
 @user_bp.route('/fan', methods=ALL_METHODS)
 @auth.login_required
 def fan():
-    if request.method != 'PUT':
+    if request.method != 'PUT' and request.method != 'POST':
         raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
     form = UserFanForm()
     if form.validate_for_api() and form.validate():
@@ -225,7 +225,7 @@ def fan():
 @user_bp.route('/un-fan', methods=ALL_METHODS)
 @auth.login_required
 def un_fan():
-    if request.method != 'PUT':
+    if request.method != 'PUT' and request.method != 'POST':
         raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
     form = UserFanForm()
     if form.validate_for_api() and form.validate():
