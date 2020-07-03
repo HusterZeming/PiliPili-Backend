@@ -76,10 +76,12 @@ def delete(id_):
     user_id = g.user.uid
     if not user_id == comment.uid and not user_id == video.uid:
         return unauthorized_error(message="没有权限")
-    if video:
-        video.comments = video.comments - 1 if video.comments else 0
     db.session.delete(comment)
     db.session.commit()
+    if video:
+        all_comments = db.session.query(Comment).filter_by(target=video.id).all()
+        video.comments = len(all_comments) if all_comments else 0
+        db.session.commit()
     return success(message="删除评论成功")
 
 
@@ -95,6 +97,11 @@ def replay(id_):
         comment_replay = Comment(content=comment_content, uid=g.user.uid, target=comment.target, replay_id=comment.id)
         db.session.add(comment_replay)
         db.session.commit()
+        video = db.session.query(Video).filter_by(id=comment.target).first()
+        if video:
+            all_comments = db.session.query(Comment).filter_by(target=video.id).all()
+            video.comments = len(all_comments) if all_comments else 0
+            db.session.commit()
         data = {
             'id': comment_replay.id
         }
