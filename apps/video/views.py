@@ -729,7 +729,7 @@ def list_video_anime():
             video.append(video_item.id)
     while i < 9 and length > 8:
         video_position = random.randint(0, length-1)
-        if candidate_video[video_position] in video:
+        if candidate_video[video_position].id in video:
             continue
         else:
             video.append(candidate_video[video_position].id)
