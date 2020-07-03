@@ -728,7 +728,7 @@ def list_video_anime():
         for video_item in candidate_video:
             video.append(video_item.id)
     while i < 9 and length > 8:
-        video_position = random.randint(1, length)
+        video_position = random.randint(0, length-1)
         if candidate_video[video_position] in video:
             continue
         else:
@@ -761,7 +761,7 @@ def list_video_color():
         for video_item in candidate_video:
             video.append(video_item.id)
     while i < 9 and length > 8:
-        video_position = random.randint(1, length)
+        video_position = random.randint(0, length - 1)
         if candidate_video[video_position] in video:
             continue
         else:
@@ -797,7 +797,7 @@ def list_video_related(id_):
     else:
         i = 1
         while i < length + 9 and i < len(all_video) + length:
-            video_id = random.randint(1, len(all_video))
+            video_position = random.randint(0, length - 1)
             if all_video[video_id] in candidate_video:
                 continue
             else:
