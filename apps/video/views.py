@@ -808,7 +808,7 @@ def list_video_related(id_):
         video = {
             'id': video_item.id,
             'title': video_item.title,
-            'views': len(list(map(int, video.views.split(',')))) if video.views else 0,
+            'views': len(list(map(int, video_item.views.split(',')))) if video_item.views else 0,
             'danmuku': video_item.danmuku,
             'duration': video_item.duration,
             'author_name': user.username,
