@@ -72,6 +72,8 @@ def delete(id_):
     if request.method != 'DELETE':
         raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
     comment = db.session.query(Comment).filter_by(id=id_).first()
+    if not comment.target:
+        return params_error(message="未查到评论的所属视频信息")
     video = db.session.query(Video).filter_by(id=comment.target).first()
     user_id = g.user.uid
     if not user_id == comment.uid and not user_id == video.uid:
