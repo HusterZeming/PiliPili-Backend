@@ -732,7 +732,7 @@ def list_video_anime():
         if candidate_video[video_position] in video:
             continue
         else:
-            video.append(candidate_video[video_position])
+            video.append(candidate_video[video_position].id)
             i += 1
     data = {
         'video_list': video
