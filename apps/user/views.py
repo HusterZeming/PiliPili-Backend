@@ -461,7 +461,7 @@ def upload_avatar_new():
 
 @user_bp.route('/upload-avatar-success', methods=ALL_METHODS)
 @auth.login_required
-def upload_avatar_new():
+def upload_avatar_save():
     if request.method != 'POST':
         raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
     form = ImageUploadNewForm()
