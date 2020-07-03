@@ -798,10 +798,10 @@ def list_video_related(id_):
         i = 1
         while i < length + 9 and i < len(all_video) + length:
             video_position = random.randint(0, length - 1)
-            if all_video[video_id] in candidate_video:
+            if all_video[video_position] in candidate_video:
                 continue
             else:
-                candidate_video.append(all_video[video_id])
+                candidate_video.append(all_video[video_position])
                 i += 1
     for video_item in candidate_video:
         user = db.session.query(User).filter_by(id=video_item.uid).first()
