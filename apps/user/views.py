@@ -6,7 +6,7 @@ from werkzeug.security import generate_password_hash
 from .generate_token import generate_token
 from .forms import RegisterForm, LoginForm, UserPutCoinForm, UserFanForm, UserGetFanForm, UserPutUsernameForm, \
     validate_email, validate_username, ImageUploadForm, UserPutSignForm, UserPutGenderForm, UserPutVipForm, \
-    PutPasswordForm
+    PutPasswordForm, ImageUploadNewForm
 from models import User, Video
 from apps.libs.restful import unauthorized_error, params_error, success
 from apps.libs.error_code import RequestMethodNotAllowed
@@ -427,6 +427,54 @@ def upload_avatar():
             'avatar': avatar_name
         }
         return success(data=data, message="上传头像成功")
+    else:
+        return params_error(message=form.get_error())
+
+
+@user_bp.route('/upload-avatar-new', methods=ALL_METHODS)
+@auth.login_required
+def upload_avatar_new():
+    if request.method != 'POST':
+        raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
+    form = ImageUploadNewForm()
+    if form.validate():
+        filename = form.filename.data
+        uid = g.user.uid
+        filename = secure_filename(filename)
+        user = db.session.query(User).filter_by(id=uid).first()
+        if user.avatar:
+            bucket.delete_object(user.avatar)
+        time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        if filename.endswith('jpg'):
+            avatar_name = str(uid) + '-' + time + '-avatar.jpg'
+        elif filename.endswith('png'):
+            avatar_name = str(uid) + '-' + time + '-avatar.png'
+        else:
+            return params_error(message="文件类型错误")
+        data = {
+            'bucket_avatar': get_bucket_token(avatar_name)
+        }
+        return success(data=data, message="上传头像成功")
+    else:
+        return params_error(message=form.get_error())
+
+
+@user_bp.route('/upload-avatar-success', methods=ALL_METHODS)
+@auth.login_required
+def upload_avatar_new():
+    if request.method != 'POST':
+        raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
+    form = ImageUploadNewForm()
+    if form.validate():
+        filename = form.filename.data
+        uid = g.user.uid
+        filename = secure_filename(filename)
+        user = db.session.query(User).filter_by(id=uid).first()
+        if user.avatar:
+            bucket.delete_object(user.avatar)
+        user.avatar = filename
+        db.session.commit()
+        return success(message="上传头像成功")
     else:
         return params_error(message=form.get_error())
 

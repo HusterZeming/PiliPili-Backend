@@ -68,5 +68,9 @@ class ImageUploadForm(UploadBaseForm):
     content = FileField(validators=[FileAllowed('jpg', 'png')])
 
 
+class ImageUploadNewForm(BaseForm):
+    filename = StringField(validators=[Length(1, 80, message="文件名最多80字"), InputRequired(message="请输入文件名")])
+
+
 class PutPasswordForm(BaseForm):
     password = StringField(validators=[Length(6, 20, message="请正确输入密码")])
