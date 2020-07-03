@@ -695,11 +695,11 @@ def list_video():
         for video_item in candidate_video:
             video.append(video_item.id)
     while i < 9 and length > 8:
-        video_position = random.randint(1, length)
-        if video_position in video:
+        video_position = random.randint(0, length - 1)
+        if candidate_video[video_position].id in video:
             continue
         else:
-            video.append(video_position)
+            video.append(candidate_video[video_position].id)
             i += 1
     data = {
         'video_list': video
@@ -728,7 +728,7 @@ def list_video_anime():
         for video_item in candidate_video:
             video.append(video_item.id)
     while i < 9 and length > 8:
-        video_position = random.randint(0, length-1)
+        video_position = random.randint(0, length - 1)
         if candidate_video[video_position].id in video:
             continue
         else:
@@ -762,10 +762,10 @@ def list_video_color():
             video.append(video_item.id)
     while i < 9 and length > 8:
         video_position = random.randint(0, length - 1)
-        if candidate_video[video_position] in video:
+        if candidate_video[video_position].id in video:
             continue
         else:
-            video.append(candidate_video[video_position])
+            video.append(candidate_video[video_position].id)
             i += 1
     data = {
         'video_list': video
