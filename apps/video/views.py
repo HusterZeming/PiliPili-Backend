@@ -809,6 +809,7 @@ def list_video_related(id_):
             'title': video_item.title,
             'views': video_item.views,
             'danmuku': video_item.danmuku,
+            'duration': video_item.duration,
             'author_name': user.username,
             'bucket_cover': get_bucket_token(video_item.cover)
         }
