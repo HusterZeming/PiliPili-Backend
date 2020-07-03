@@ -437,7 +437,7 @@ def upload_avatar_new():
     if request.method != 'POST':
         raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
     form = ImageUploadNewForm()
-    if form.validate():
+    if form.validate_for_api() and form.validate():
         filename = form.filename.data
         uid = g.user.uid
         filename = secure_filename(filename)
@@ -465,7 +465,7 @@ def upload_avatar_save():
     if request.method != 'POST':
         raise RequestMethodNotAllowed(msg="The method %s is not allowed for the requested URL" % request.method)
     form = ImageUploadNewForm()
-    if form.validate():
+    if form.validate_for_api() and form.validate():
         filename = form.filename.data
         uid = g.user.uid
         filename = secure_filename(filename)
