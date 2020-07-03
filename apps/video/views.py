@@ -785,7 +785,8 @@ def list_video_related(id_):
         candidate_video = all_video[0:9]
     else:
         candidate_video = all_video[0:length]
-    candidate_video.remove(video)
+    if video in candidate_video:
+        candidate_video.remove(video)
     all_video = db.session.query(Video).filter(Video.id).filter(Video.type == 1).filter(Video.uid != video.uid).order_by(
         db.desc(Video.upload_time)).all()
     length = 8 - len(candidate_video)
