@@ -10,21 +10,18 @@ DEBUG = False
 
 # 配置本地数据库相关信息，本地开发！！！修改后勿提交此文件！！！
 DB_USERNAME = 'root'
-DB_PASSWORD = '784748497'
+DB_PASSWORD = '保密'
 DB_HOST = '127.0.0.1'
 DB_PORT = '3306'
 
 DB_NAME = 'pilipili'
-DB_URI = 'mysql+pymysql://%s:%s@%s:%s/%s?charset=utf8' % (DB_USERNAME, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME)
+DB_URI = '保密' % (DB_USERNAME, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME)
 
 # 阿里Bucket配置,此为管理员
-auth = oss2.Auth('LTAI4GHxSd1uqj1YWkSFJsoR', '4x5zpNNjLDPHZfTH07MyJRTtz95Kuw')
-endpoint = 'https://oss-cn-beijing.aliyuncs.com'
-bucket = oss2.Bucket(auth, endpoint, 'pilipili-bucket')
+# 保密
 
 # 只读权限
-guest_Key = 'LTAI4G2sAv9YZPY7npjXzb3W'
-guest_Secret = 'RrgZoFblhs7IK7swSYJ3owviqHk3mt'
+#保密
 
 SQLALCHEMY_DATABASE_URI = DB_URI
 SQLALCHEMY_TRACK_MODIFICATIONS = False
